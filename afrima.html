@@ -124,6 +124,12 @@
     color:var(--color-neutral-700);white-space:nowrap}
   .seg-opt input:checked+span{background:#fff;color:var(--color-text);box-shadow:var(--shadow-sm)}
 
+  .radio{display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;position:relative}
+  .radio input{position:absolute;opacity:0}
+  .radio .dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--color-neutral-400);flex:none}
+  .radio input:checked+.dot{border-color:var(--color-accent);
+    background:radial-gradient(circle at center,var(--color-accent) 0 4px,transparent 5px)}
+
   .washed{background:linear-gradient(155deg,var(--color-accent-200),var(--color-accent-2-200))}
   .text-muted{color:var(--color-neutral-600)}
 
@@ -210,7 +216,9 @@
   }
 
   // ---- session ---------------------------------------------------------
-  var S = { screen: "landing", role: "patient", name: "", title: "General practitioner", err: "", toast: "" };
+  var PROFS = ["General practitioner", "Nutritionist", "Therapist / counsellor", "Paediatrician"];
+  var S = { screen: "landing", role: "patient", name: "", profession: "General practitioner",
+            title: "General practitioner", langs: "English, Swahili", err: "", toast: "" };
   var host = null;   // practitioner runtime
   var pt = null;     // patient runtime
   var noteDraft = "";
@@ -425,9 +433,13 @@
   document.addEventListener("click", function(e){
     var t = e.target.closest("[data-act]"); if (!t) return;
     var a = t.dataset.act;
-    if (a === "start"){
+    if (a === "to-signin"){ S.role = "patient"; S.err = ""; S.screen = "signin"; render(); }
+    else if (a === "to-signin-doctor"){ S.role = "doctor"; S.err = ""; S.screen = "signin"; render(); }
+    else if (a === "to-landing"){ S.err = ""; S.screen = "landing"; render(); }
+    else if (a === "start" || a === "enter"){
       if (!S.name.trim()){ S.err = "Enter your name first."; return render(); }
       S.err = "";
+      S.title = (S.role === "doctor") ? S.profession : S.title;
       if (S.role === "doctor") startHost(); else startPatient();
     }
     else if (a === "leave") leaveAll();
@@ -443,11 +455,17 @@
   });
   document.addEventListener("change", function(e){
     if (e.target.name === "role"){ S.role = e.target.value; render(); }
+    else if (e.target.name === "prof"){ S.profession = e.target.value; S.title = e.target.value; render(); }
   });
   document.addEventListener("input", function(e){
     var f = e.target.dataset.field;
-    if (f === "name") S.name = e.target.value;
-    else if (f === "title") S.title = e.target.value;
+    if (f === "name"){
+      S.name = e.target.value;
+      var c = document.querySelector(".js-initials");
+      if (c) c.textContent = initials(e.target.value || "Your name");
+    }
+    else if (f === "title"){ S.title = e.target.value; S.profession = e.target.value; }
+    else if (f === "langs"){ S.langs = e.target.value; }
     else if (e.target.classList.contains("js-note-input")) noteDraft = e.target.value;
   });
   document.addEventListener("submit", function(e){
@@ -525,66 +543,112 @@
     '</div>';
   }
 
+  function warnBanner(){
+    var w = "";
+    if (!LIB_OK) w = '<div class="banner banner-err">Couldn’t load the realtime library (peerjs). Check your connection and reload.</div>';
+    else if (!SECURE) w = '<div class="banner banner-warn">Open this page over <b>https://</b> (or localhost). Camera and microphone need a secure page — calls won’t run from a local file.</div>';
+    return w ? '<div class="wrap" style="padding:var(--space-3) var(--space-6) 0">' + w + '</div>' : '';
+  }
+
   // ---------------------------- landing -------------------------------
   function viewLanding(){
-    var isDoc = S.role === "doctor";
-    var warn = "";
-    if (!LIB_OK) warn = '<div class="banner banner-err" style="margin-bottom:var(--space-4)">Couldn’t load the realtime library (peerjs). Check your connection and reload.</div>';
-    else if (!SECURE) warn = '<div class="banner banner-warn" style="margin-bottom:var(--space-4)">Open this page over <b>https://</b> (or localhost). Camera and microphone access need a secure page — it won’t work from a local file.</div>';
-
-    var joinCard =
-      '<div class="card elev-md" style="padding:var(--space-6);gap:var(--space-4)">' +
-        '<div><div class="card-kicker">Join this room</div><h3 style="margin:0">One link, two doors</h3></div>' +
-        '<div class="seg" style="align-self:start">' +
-          '<label class="seg-opt"><input type="radio" name="role" value="patient"' + (isDoc ? "" : " checked") + '/><span>I need care</span></label>' +
-          '<label class="seg-opt"><input type="radio" name="role" value="doctor"' + (isDoc ? " checked" : "") + '/><span>I’m the practitioner</span></label>' +
-        '</div>' +
-        '<div class="field"><label>Your name</label>' +
-          '<input class="input" data-field="name" value="' + esc(S.name) + '" placeholder="Full name" autocomplete="name" /></div>' +
-        (isDoc
-          ? '<div class="field"><label>Your title — patients see this</label>' +
-            '<input class="input" data-field="title" value="' + esc(S.title) + '" placeholder="e.g. Nutritionist" /></div>'
-          : '') +
-        (S.err ? '<p style="margin:0;font-size:13px;color:#b3261e">' + esc(S.err) + '</p>' : '') +
-        '<button class="btn btn-primary btn-block" style="min-height:46px"' + ((LIB_OK && SECURE) ? '' : ' disabled') + ' data-act="start">' +
-          (isDoc ? "Open the room" : "Join the room") + '</button>' +
-        '<p class="text-muted" style="font-size:12px;margin:0">' +
-          (isDoc
-            ? "You hold the room open. Patients join one at a time; when one leaves, the next is admitted — you stay connected throughout."
-            : "If the practitioner is free you go straight in. If they’re with someone you wait in line and are pulled in automatically.") +
-        '</p>' +
-      '</div>';
-
-    return navBar() +
-    warn +
-    '<div class="wrap" style="padding:var(--space-4) var(--space-6) var(--space-8);display:grid;' +
+    return navBar('<button class="btn btn-primary" style="min-height:44px" data-act="to-signin">Sign in</button>') +
+    warnBanner() +
+    '<div class="wrap" style="padding:var(--space-6) var(--space-6) var(--space-8);display:grid;' +
       'grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--space-8);align-items:center">' +
       '<div>' +
         '<h6 style="color:var(--color-accent-700);margin-bottom:var(--space-3)">Consulting rooms that never close</h6>' +
-        '<h1 style="font-size:clamp(36px,5vw,60px);margin-bottom:var(--space-4);max-width:16ch">Someone is always in the room.</h1>' +
-        '<p style="font-size:17px;max-width:46ch;text-wrap:pretty;margin-bottom:var(--space-5)">A practitioner opens a room and stays in it. ' +
-          'Patients join the live video call over the same link — no booking. One hangs up, the room stays open, the next goes in.</p>' +
-        joinCard +
+        '<h1 style="font-size:clamp(38px,5.5vw,64px);margin-bottom:var(--space-4);max-width:16ch">Someone is always in the room.</h1>' +
+        '<p style="font-size:17px;max-width:46ch;text-wrap:pretty">Practitioners open a room and stay in it all day. ' +
+          'You see who is in, read their title, and join the call. No booking, no waiting for a slot next week.</p>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:var(--space-3);margin-top:var(--space-6)">' +
+          '<button class="btn btn-primary" style="min-height:48px;padding-inline:var(--space-6)" data-act="to-signin">See who is in</button>' +
+          '<button class="btn btn-secondary" style="min-height:48px;padding-inline:var(--space-6)" data-act="to-signin-doctor">Open a room as a practitioner</button>' +
+        '</div>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:var(--space-2);margin-top:var(--space-4)">' +
+          '<span class="tag tag-neutral">General practitioners</span>' +
+          '<span class="tag tag-neutral">Nutritionists</span>' +
+          '<span class="tag tag-neutral">Therapists</span>' +
+          '<span class="tag tag-neutral">Paediatricians</span>' +
+        '</div>' +
       '</div>' +
-      '<div style="position:relative;padding-bottom:var(--space-6);padding-left:var(--space-4)">' +
+      '<div style="position:relative;padding-bottom:var(--space-8);padding-left:var(--space-4)">' +
         '<div style="border-radius:999px 999px 40px 40px;overflow:hidden;aspect-ratio:4/5;box-shadow:var(--shadow-lg);background:var(--color-accent-200)">' +
-          '<img src="hero.jpg" alt="A practitioner talking a patient through something on a tablet" ' +
+          '<img src="hero.jpg" alt="A practitioner walking a patient through something on a tablet" ' +
             'style="width:100%;height:100%;object-fit:cover;object-position:38% 40%;display:block" />' +
+        '</div>' +
+        '<div class="card elev-md" style="position:absolute;left:0;bottom:0;max-width:230px;padding:var(--space-3) var(--space-4);gap:var(--space-1)">' +
+          '<div style="display:flex;align-items:center;gap:var(--space-2)">' +
+            '<span class="dot-pulse" style="width:9px;height:9px;background:var(--color-accent-2-600)"></span>' +
+            '<span class="card-kicker" style="color:var(--color-accent-2-700)">Live now</span>' +
+          '</div>' +
+          '<div style="font-size:14px">The practitioner stays connected between patients</div>' +
         '</div>' +
       '</div>' +
     '</div>' +
     '<div class="wrap" style="padding:0 var(--space-6) var(--space-8)">' +
       '<h2 style="margin-bottom:var(--space-6);max-width:22ch">How a call happens</h2>' +
       '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:var(--space-4)">' +
-        step(1, "Open the room", "The practitioner opens the room once and shares the link. Their camera stays on between patients.") +
-        step(2, "Join the call", "A free room takes the patient straight into a live video call. A busy one holds their place in line.") +
-        step(3, "Hang up — the room stays", "The patient leaves with the notes from the call. The practitioner stays online and the next patient goes in.") +
+        step(1, "See who is in", "Every open room shows the practitioner’s photograph and their title, so you know who you are about to speak to.") +
+        step(2, "Join the call", "A free room takes you straight in. A busy one holds your place and pulls you in when the person ahead hangs up.") +
+        step(3, "Hang up — the room stays", "You leave with the notes from your call. The practitioner stays online and the next patient goes in.") +
       '</div>' +
     '</div>' +
-    '<div class="footer"><div class="wrap" style="padding:var(--space-4) var(--space-6)">' +
-      '<span class="text-muted" style="font-size:12px">Peer-to-peer video over WebRTC. No accounts, no recording, nothing stored on a server. ' +
-      'Different link tab? add <code>?room=name</code> to run a separate room.</span>' +
+    '<div class="footer"><div class="wrap" style="padding:var(--space-4) var(--space-6);display:flex;justify-content:space-between;gap:var(--space-3);flex-wrap:wrap">' +
+      '<span class="text-muted" style="font-size:12px">Peer-to-peer video over WebRTC — no accounts, no recording, nothing stored on a server.</span>' +
+      '<span class="text-muted" style="font-size:12px">Add <code>?room=name</code> to the link for a separate room.</span>' +
     '</div></div>';
+  }
+
+  // ---------------------------- sign in ------------------------------
+  function viewSignin(){
+    var isDoc = S.role === "doctor";
+    var profGrid = PROFS.map(function(p){
+      return '<label class="radio"><input type="radio" name="prof" value="' + esc(p) + '"' +
+        (S.profession === p ? " checked" : "") + '/><span class="dot"></span><span>' + esc(p) + '</span></label>';
+    }).join("");
+    var docBlock = !isDoc ? "" :
+      '<div style="display:flex;flex-direction:column;gap:var(--space-4)">' +
+        '<div class="field" style="margin:0">' +
+          '<label>Your title — patients see this above your room</label>' +
+          '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:var(--space-2) var(--space-3);margin-top:var(--space-1)">' +
+            profGrid +
+          '</div>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:var(--space-3)">' +
+          '<div class="avatar js-initials" style="width:64px;height:64px;background:var(--color-accent-2-200);color:var(--color-accent-2-800);font-size:21px">' +
+            esc(initials(S.name || "Your name")) + '</div>' +
+          '<p class="card-body" style="margin:0">Patients see your portrait next to your title. It is the one thing they judge before joining.</p>' +
+        '</div>' +
+        '<div class="field" style="margin:0"><label>Languages</label>' +
+          '<input class="input" data-field="langs" value="' + esc(S.langs) + '" /></div>' +
+      '</div>';
+
+    return navBar() +
+    warnBanner() +
+    '<div class="wrap" style="padding:var(--space-4) var(--space-6) var(--space-8);display:grid;' +
+      'grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:var(--space-8);align-items:start">' +
+      '<div style="padding-top:var(--space-4)">' +
+        '<h6 style="color:var(--color-accent-700);margin-bottom:var(--space-3)">Sign in</h6>' +
+        '<h1 style="font-size:clamp(32px,4vw,48px);margin-bottom:var(--space-4);max-width:18ch">Two doors into the same room.</h1>' +
+        '<p style="font-size:16px;max-width:42ch;text-wrap:pretty">Patients arrive and join. Practitioners pick the title patients will see above their room, then open it.</p>' +
+        '<button class="btn btn-ghost" style="margin-top:var(--space-3)" data-act="to-landing">Back to the home page</button>' +
+      '</div>' +
+      '<div class="card elev-md" style="padding:var(--space-6);gap:var(--space-4)">' +
+        '<div><div class="card-kicker">Who are you today?</div><h3 style="margin:0">Choose a door</h3></div>' +
+        '<div class="seg" style="align-self:start">' +
+          '<label class="seg-opt"><input type="radio" name="role" value="patient"' + (isDoc ? "" : " checked") + '/><span>I need care</span></label>' +
+          '<label class="seg-opt"><input type="radio" name="role" value="doctor"' + (isDoc ? " checked" : "") + '/><span>I’m a practitioner</span></label>' +
+        '</div>' +
+        '<div class="field"><label>Your name</label>' +
+          '<input class="input" data-field="name" value="' + esc(S.name) + '" placeholder="Full name" autocomplete="name" /></div>' +
+        docBlock +
+        (S.err ? '<p style="margin:0;font-size:13px;color:#b3261e">' + esc(S.err) + '</p>' : '') +
+        '<button class="btn btn-primary btn-block" style="min-height:44px"' + ((LIB_OK && SECURE) ? '' : ' disabled') + ' data-act="enter">' +
+          (isDoc ? "Open my room" : "See who is in") + '</button>' +
+        '<p class="text-muted" style="font-size:12px;margin:0">Peer-to-peer video — no calls are recorded or stored.</p>' +
+      '</div>' +
+    '</div>';
   }
   function step(n, title, body){
     return '<div class="card elev-sm" style="padding:var(--space-4);gap:var(--space-3)">' +
@@ -779,6 +843,7 @@
     var body;
     if (S.screen === "host" && host) body = viewHost();
     else if (S.screen === "patient" && pt) body = viewPatient();
+    else if (S.screen === "signin") body = viewSignin();
     else body = viewLanding();
     app.innerHTML = '<div style="min-height:100vh">' + body + '</div>' +
       (S.toast ? '<div class="toast">' + esc(S.toast) + '</div>' : '');
