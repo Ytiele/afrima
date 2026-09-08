@@ -151,7 +151,7 @@
 (function(){
   "use strict";
 
-  var KEY = "openroom.v2";
+  var KEY = "openroom.v3";
   var PROFS = ["General practitioner","Nutritionist","Therapist / counsellor","Paediatrician"];
   var AUTO_ADMIT = 5;   // seconds an open, empty room waits before auto-admitting the queue head
   var QUEUE_WAIT = 8;   // seconds a queued patient waits before the room frees up for them
@@ -189,54 +189,10 @@
   }
 
   // ---- shared, cross-tab room state --------------------------------------
+  // No fixtures — the platform starts empty. Rooms appear only when a real
+  // practitioner signs in and opens one.
   function seed(){
-    var now = Date.now();
-    function mk(name,title,langs,mins,consults){
-      return {id:slug(name),name:name,title:title,langs:langs, email:null,
-        since:now - mins*60000, consults:consults, online:true,
-        busyWith:null, busyEmail:null, busyReason:null, callStart:null, notes:[], queue:[]};
-    }
-    var list = [
-      mk("Dr. Amina Wekesa","General practitioner","English, Swahili",134,9),
-      mk("Grace Njoroge","Nutritionist","English, Swahili",46,4),
-      mk("Dr. Peter Otieno","Paediatrician","English",18,2),
-      mk("Sarah Kimani","Therapist / counsellor","English, Swahili",182,11),
-      mk("Dr. Yusuf Ali","General practitioner","English, Somali",90,6),
-      mk("Faith Mutiso","Therapist / counsellor","English, Swahili",24,3)
-    ];
-    var doctors = {};
-    list.forEach(function(d){ doctors[d.id] = d; });
-
-    var g = doctors[slug("Grace Njoroge")];
-    g.busyWith = "Deborah A."; g.busyEmail = "deborah@example.com";
-    g.busyReason = "Meal plan review"; g.callStart = now - 6*60000;
-    g.notes = [
-      {at:"1:10", text:"Food diary is consistent — three meals a day, breakfast not skipped."},
-      {at:"4:30", text:"Swap the afternoon soda for water or unsweetened tea this week."}
-    ];
-    g.queue = [
-      {name:"Brian Kariuki", email:"brian.k@example.com", reason:"Follow-up on meal plan", at:now - 3*60000},
-      {name:"Lucy Wanjiru",  email:"lucy.w@example.com",  reason:"Blood pressure reading", at:now - 6*60000}
-    ];
-    var sk = doctors[slug("Sarah Kimani")];
-    sk.busyWith = "Anthony M."; sk.busyEmail = "anthony.m@example.com";
-    sk.busyReason = "Weekly session"; sk.callStart = now - 12*60000;
-    sk.notes = [
-      {at:"2:05", text:"Sleep is back to about six hours — keep the wind-down routine going."}
-    ];
-    sk.queue = [{name:"Samuel Ochieng", email:"samuel.o@example.com", reason:"First visit", at:now - 11*60000}];
-
-    return {
-      doctors: doctors,
-      mail: {},
-      log: {
-        "grace-njoroge":[
-          {name:"Alice Ndungu", detail:"12 min · ended 14:02"},
-          {name:"Kevin Mwangi", detail:"7 min · ended 13:41"},
-          {name:"Halima Said",  detail:"18 min · ended 13:12"}
-        ]
-      }
-    };
+    return { doctors: {}, mail: {}, log: {} };
   }
   function load(){
     try{
@@ -694,10 +650,13 @@
         '</div>' +
         '<div class="card elev-md" style="position:absolute;left:0;bottom:0;max-width:230px;padding:var(--space-3) var(--space-4);gap:var(--space-1)">' +
           '<div style="display:flex;align-items:center;gap:var(--space-2)">' +
-            '<span class="dot-pulse" style="width:9px;height:9px;background:var(--color-accent-2-600)"></span>' +
-            '<span class="card-kicker" style="color:var(--color-accent-2-700)">Live now</span>' +
+            '<span class="' + (online ? 'dot-pulse' : '') + '" style="width:9px;height:9px;border-radius:50%;background:' +
+              (online ? 'var(--color-accent-2-600)' : 'var(--color-neutral-400)') + '"></span>' +
+            '<span class="card-kicker" style="color:var(--color-accent-2-700)">' + (online ? 'Live now' : 'Rooms') + '</span>' +
           '</div>' +
-          '<div style="font-size:14px">' + online + ' practitioners are in their rooms</div>' +
+          '<div style="font-size:14px">' +
+            (online ? online + (online === 1 ? ' practitioner is' : ' practitioners are') + ' in their rooms'
+                    : 'No one is in a room yet') + '</div>' +
         '</div>' +
       '</div>' +
     '</div>' +
@@ -711,7 +670,7 @@
     '</div>' +
     '<div class="footer"><div class="wrap" style="padding:var(--space-4) var(--space-6);display:flex;justify-content:space-between;gap:var(--space-3);flex-wrap:wrap">' +
       '<span class="text-muted" style="font-size:12px">Prototype — no real calls are placed. Room state is shared across browser tabs on this device.</span>' +
-      '<button class="btn btn-ghost" style="font-size:12px" data-act="reset">Reset demo data</button>' +
+      '<button class="btn btn-ghost" style="font-size:12px" data-act="reset">Clear all data</button>' +
     '</div></div>';
   }
   function stepCard(n,title,body){
@@ -812,16 +771,23 @@
       '</div>';
     }).join("");
 
+    var grid = total
+      ? '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:var(--space-4)">' + cards + '</div>'
+      : '<div class="card" style="align-items:center;text-align:center;gap:var(--space-2);padding:var(--space-8) var(--space-6)">' +
+          '<div class="card-title">No one is in a room right now</div>' +
+          '<p class="card-body" style="margin:0;max-width:42ch">Rooms show up here the moment a practitioner signs in and opens one. ' +
+          'Open this page in another tab, sign in as a practitioner, and this list fills in live.</p></div>';
+
     return '<div class="wrap" style="padding:var(--space-4) var(--space-6) var(--space-8)">' +
       banner +
       '<div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:var(--space-3);margin-bottom:var(--space-4)">' +
-        '<div><h6 style="color:var(--color-accent-700);margin-bottom:var(--space-2)">' + free + ' of ' + total + ' rooms free</h6>' +
+        '<div><h6 style="color:var(--color-accent-700);margin-bottom:var(--space-2)">' +
+          (total ? free + ' of ' + total + (total === 1 ? ' room free' : ' rooms free') : 'No rooms open') + '</h6>' +
         '<h2 style="margin:0">In the room right now</h2></div>' +
         '<p class="text-muted" style="margin:0;font-size:13px;max-width:34ch">Rooms marked open take you straight in. Busy rooms hold your place in the queue.</p>' +
       '</div>' +
       mailNote +
-      '<p class="text-muted" style="font-size:12px;margin:0 0 var(--space-4)">Tip: open this page in a second tab and sign in as a practitioner — join that room here, and watch the practitioner console admit you while their room stays live.</p>' +
-      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:var(--space-4)">' + cards + '</div>' +
+      grid +
     '</div>';
   }
 
