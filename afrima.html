@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Openroom — consulting rooms that never close</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --color-bg:#f5ead8;
+    --color-text:#201e1d;
+    --color-accent:#c67139;
+    --color-accent-2:#7a8a5e;
+
+    --color-accent-100:#f7e7d9;
+    --color-accent-200:#eccbae;
+    --color-accent-300:#e0ac85;
+    --color-accent-400:#d38f5d;
+    --color-accent-500:#c67139;
+    --color-accent-600:#a95d2c;
+    --color-accent-700:#89491f;
+    --color-accent-800:#693819;
+    --color-accent-900:#4a2712;
+
+    --color-accent-2-100:#e9eddf;
+    --color-accent-2-200:#d5ddc2;
+    --color-accent-2-300:#bdc9a1;
+    --color-accent-2-400:#a3b381;
+    --color-accent-2-500:#7a8a5e;
+    --color-accent-2-600:#66764e;
+    --color-accent-2-700:#525f3f;
+    --color-accent-2-800:#3f4a31;
+    --color-accent-2-900:#2d3423;
+
+    --color-neutral-100:#efe8da;
+    --color-neutral-200:#e3dccb;
+    --color-neutral-300:#cec6b2;
+    --color-neutral-400:#a9a08b;
+    --color-neutral-500:#7d7565;
+    --color-neutral-600:#5b5447;
+    --color-neutral-700:#403b31;
+    --color-neutral-800:#2b2823;
+    --color-neutral-900:#1c1a16;
+    --color-divider:rgba(32,30,29,.12);
+
+    --font-heading:"Caprasimo",Georgia,serif;
+    --font-body:"Figtree",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+
+    --space-1:5px; --space-2:9px; --space-3:13px; --space-4:18px;
+    --space-5:26px; --space-6:35px; --space-7:46px; --space-8:64px;
+
+    --radius-lg:16px;
+
+    --shadow-sm:0 1px 2px rgba(32,30,29,.06),0 1px 3px rgba(32,30,29,.09);
+    --shadow-md:0 4px 12px rgba(32,30,29,.10),0 2px 4px rgba(32,30,29,.06);
+    --shadow-lg:0 18px 48px rgba(32,30,29,.18),0 6px 16px rgba(32,30,29,.10);
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--color-bg);color:var(--color-text);
+    font-family:var(--font-body);font-size:15px;line-height:1.5;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  }
+  h1,h2,h3,h4,h5,h6{font-family:var(--font-heading);font-weight:400;line-height:1.08;margin:0}
+  h2{font-size:clamp(24px,3.3vw,33px)}
+  h3{font-size:20px}
+  h6{font-size:12px;letter-spacing:.07em;text-transform:uppercase;font-family:var(--font-body);font-weight:700}
+  p{margin:0}
+  a{color:var(--color-accent-700);text-decoration:none}
+  a:hover{color:var(--color-accent)}
+  :focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
+  img,video{max-width:100%;display:block}
+
+  .wrap{max-width:1120px;margin:0 auto;padding-left:var(--space-6);padding-right:var(--space-6)}
+
+  .nav{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);
+    flex-wrap:wrap;padding-top:var(--space-4);padding-bottom:var(--space-4)}
+  .nav-brand{font-family:var(--font-heading);font-size:23px;color:var(--color-accent-700)}
+
+  .btn{font:inherit;font-weight:600;font-size:14px;border-radius:999px;border:1px solid transparent;
+    padding:10px 18px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
+    gap:8px;line-height:1;transition:background .12s,color .12s,border-color .12s,transform .04s;text-align:center}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--color-accent);color:#fff}
+  .btn-primary:hover{background:var(--color-accent-600)}
+  .btn-secondary{background:transparent;color:var(--color-text);border-color:color-mix(in srgb,var(--color-text) 22%,transparent)}
+  .btn-secondary:hover{background:color-mix(in srgb,var(--color-text) 6%,transparent)}
+  .btn-ghost{background:transparent;color:var(--color-accent-700);padding-inline:8px}
+  .btn-ghost:hover{color:var(--color-accent)}
+  .btn-block{width:100%}
+
+  .tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;
+    padding:5px 11px;border-radius:999px;white-space:nowrap}
+  .tag-accent{background:var(--color-accent-100);color:var(--color-accent-800)}
+  .tag-accent-2{background:var(--color-accent-2-100);color:var(--color-accent-2-800)}
+  .tag-neutral{background:var(--color-neutral-200);color:var(--color-neutral-700)}
+
+  .card{display:flex;flex-direction:column;gap:var(--space-2);background:#fdf7ec;
+    border:1px solid var(--color-divider);border-radius:var(--radius-lg);padding:var(--space-4)}
+  .elev-sm{box-shadow:var(--shadow-sm)}
+  .elev-md{box-shadow:var(--shadow-md)}
+  .elev-lg{box-shadow:var(--shadow-lg)}
+  .card-kicker{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--color-neutral-600)}
+  .card-title{font-family:var(--font-heading);font-size:18px;line-height:1.15}
+  .card-body{font-size:14px;color:var(--color-neutral-700);line-height:1.5}
+  .card-meta{display:flex;gap:var(--space-2);font-size:13px;color:var(--color-neutral-600)}
+
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field>label{font-size:13px;font-weight:600;color:var(--color-neutral-700)}
+  .input{font:inherit;padding:11px 15px;border-radius:999px;border:1px solid color-mix(in srgb,var(--color-text) 20%,transparent);
+    background:#fff;color:inherit;width:100%}
+  .input:focus{outline:2px solid var(--color-accent);outline-offset:1px;border-color:transparent}
+
+  .seg{display:inline-flex;background:var(--color-neutral-200);border-radius:999px;padding:4px;gap:2px;flex-wrap:wrap}
+  .seg-opt{position:relative}
+  .seg-opt input{position:absolute;inset:0;opacity:0;cursor:pointer;margin:0}
+  .seg-opt span{display:block;padding:8px 15px;border-radius:999px;font-size:13px;font-weight:600;
+    color:var(--color-neutral-700);white-space:nowrap}
+  .seg-opt input:checked+span{background:#fff;color:var(--color-text);box-shadow:var(--shadow-sm)}
+
+  .radio{display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;position:relative}
+  .radio input{position:absolute;opacity:0}
+  .radio .dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--color-neutral-400);flex:none}
+  .radio input:checked+.dot{border-color:var(--color-accent);
+    background:radial-gradient(circle at center,var(--color-accent) 0 4px,transparent 5px)}
+
+  .washed{background:linear-gradient(155deg,var(--color-accent-200),var(--color-accent-2-200))}
+  .text-muted{color:var(--color-neutral-600)}
+
+  .avatar{border-radius:50%;display:grid;place-items:center;font-family:var(--font-heading);flex:none;line-height:1}
+  .slot{display:grid;place-items:center;font-family:var(--font-heading);width:100%;height:100%;position:relative;overflow:hidden}
+  .slot-video{color:var(--color-neutral-100);background:var(--color-neutral-800)}
+  .selfcam{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+
+  .dot-pulse{border-radius:50%;animation:pulseDot 1.6s ease-in-out infinite}
+  .dot-pulse.fast{animation-duration:1.4s}
+  @keyframes pulseDot{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:1;transform:scale(1)}}
+  @media (prefers-reduced-motion:reduce){.dot-pulse{animation:none}}
+
+  .stage-label{position:absolute;pointer-events:none}
+  .footer{border-top:1px solid var(--color-divider);margin-top:var(--space-8)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(function(){
+  "use strict";
+
+  var KEY = "openroom.v2";
+  var PROFS = ["General practitioner","Nutritionist","Therapist / counsellor","Paediatrician"];
+  var AUTO_ADMIT = 5;   // seconds an open, empty room waits before auto-admitting the queue head
+  var QUEUE_WAIT = 8;   // seconds a queued patient waits before the room frees up for them
+
+  // ---- helpers -------------------------------------------------------------
+  function esc(s){
+    return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+  function slug(n){
+    return String(n||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "room";
+  }
+  function initials(n){
+    var parts = String(n||"").replace(/^Dr\.?\s*/i,"").trim().split(/\s+/).slice(0,2);
+    var out = parts.map(function(w){return w[0]||"";}).join("").toUpperCase();
+    return out || "–";
+  }
+  function first(n){
+    return String(n||"").replace(/^Dr\.?\s*/i,"").trim().split(/\s+/)[0] || "They";
+  }
+  function mmss(s){
+    s = Math.max(0, s|0);
+    return Math.floor(s/60) + ":" + String(s%60).padStart(2,"0");
+  }
+  function dur(ms){
+    var m = Math.floor(ms/60000);
+    if (m < 1) return "just now";
+    if (m < 60) return m + "m";
+    return Math.floor(m/60) + "h " + String(m%60).padStart(2,"0") + "m";
+  }
+  function hm(ms){
+    var m = Math.max(0, Math.floor(ms/60000));
+    return Math.floor(m/60) + "h " + String(m%60).padStart(2,"0") + "m";
+  }
+
+  // ---- shared, cross-tab room state --------------------------------------
+  function seed(){
+    var now = Date.now();
+    function mk(name,title,langs,mins,consults){
+      return {id:slug(name),name:name,title:title,langs:langs, email:null,
+        since:now - mins*60000, consults:consults, online:true,
+        busyWith:null, busyEmail:null, busyReason:null, callStart:null, notes:[], queue:[]};
+    }
+    var list = [
+      mk("Dr. Amina Wekesa","General practitioner","English, Swahili",134,9),
+      mk("Grace Njoroge","Nutritionist","English, Swahili",46,4),
+      mk("Dr. Peter Otieno","Paediatrician","English",18,2),
+      mk("Sarah Kimani","Therapist / counsellor","English, Swahili",182,11),
+      mk("Dr. Yusuf Ali","General practitioner","English, Somali",90,6),
+      mk("Faith Mutiso","Therapist / counsellor","English, Swahili",24,3)
+    ];
+    var doctors = {};
+    list.forEach(function(d){ doctors[d.id] = d; });
+
+    var g = doctors[slug("Grace Njoroge")];
+    g.busyWith = "Deborah A."; g.busyEmail = "deborah@example.com";
+    g.busyReason = "Meal plan review"; g.callStart = now - 6*60000;
+    g.notes = [
+      {at:"1:10", text:"Food diary is consistent — three meals a day, breakfast not skipped."},
+      {at:"4:30", text:"Swap the afternoon soda for water or unsweetened tea this week."}
+    ];
+    g.queue = [
+      {name:"Brian Kariuki", email:"brian.k@example.com", reason:"Follow-up on meal plan", at:now - 3*60000},
+      {name:"Lucy Wanjiru",  email:"lucy.w@example.com",  reason:"Blood pressure reading", at:now - 6*60000}
+    ];
+    var sk = doctors[slug("Sarah Kimani")];
+    sk.busyWith = "Anthony M."; sk.busyEmail = "anthony.m@example.com";
+    sk.busyReason = "Weekly session"; sk.callStart = now - 12*60000;
+    sk.notes = [
+      {at:"2:05", text:"Sleep is back to about six hours — keep the wind-down routine going."}
+    ];
+    sk.queue = [{name:"Samuel Ochieng", email:"samuel.o@example.com", reason:"First visit", at:now - 11*60000}];
+
+    return {
+      doctors: doctors,
+      mail: {},
+      log: {
+        "grace-njoroge":[
+          {name:"Alice Ndungu", detail:"12 min · ended 14:02"},
+          {name:"Kevin Mwangi", detail:"7 min · ended 13:41"},
+          {name:"Halima Said",  detail:"18 min · ended 13:12"}
+        ]
+      }
+    };
+  }
+  function load(){
+    try{
+      var j = JSON.parse(localStorage.getItem(KEY));
+      if (j && j.doctors) return j;
+    }catch(e){}
+    var s = seed();
+    try{ localStorage.setItem(KEY, JSON.stringify(s)); }catch(e){}
+    return s;
+  }
+  function save(){
+    try{ localStorage.setItem(KEY, JSON.stringify(shared)); }catch(e){}
+  }
+  function freeRoom(d){ return d.online && !d.busyWith && d.queue.length === 0; }
+
+  // ---- consultation bookkeeping: notes email, day log, freeing the room ----
+  function writeMail(email, d, notes, secs){
+    if (!email) return;
+    shared.mail = shared.mail || {};
+    shared.mail[email] = shared.mail[email] || [];
+    shared.mail[email].unshift({
+      practitioner: d.name, title: d.title, at: Date.now(),
+      duration: Math.max(1, Math.round(secs / 60)) + " min",
+      notes: (notes || []).slice()
+    });
+    shared.mail[email] = shared.mail[email].slice(0, 20);
+  }
+  function logConsult(d, who, secs){
+    shared.log = shared.log || {};
+    shared.log[d.id] = shared.log[d.id] || [];
+    shared.log[d.id].unshift({ name: who || "Patient", detail: Math.max(1, Math.round(secs / 60)) + " min · just now" });
+    shared.log[d.id] = shared.log[d.id].slice(0, 4);
+  }
+  // Ends whatever consultation the room is holding: emails the practitioner's
+  // notes to the patient's address, records it in the day log, frees the room.
+  function endRoomConsult(d){
+    if (!d || !d.busyWith) return;
+    var secs = d.callStart ? Math.round((Date.now() - d.callStart) / 1000) : 0;
+    writeMail(d.busyEmail, d, d.notes || [], secs);
+    logConsult(d, d.busyWith, secs);
+    d.consults = (d.consults || 0) + 1;
+    d.busyWith = null; d.busyEmail = null; d.busyReason = null; d.callStart = null; d.notes = [];
+  }
+
+  var shared = load();
+
+  // ---- per-tab session --------------------------------------------------
+  function newSession(){
+    return {
+      screen:"landing",
+      role:"patient",
+      email:"",
+      name:"",
+      profession:"Nutritionist",
+      langs:"English, Swahili",
+      signinError:"",
+      joinedId:null,      // patient: room I'm in
+      phase:null,         // "waiting" | "live"
+      callStart:null,
+      waitLeft:0,
+      lastDuration:0,
+      callNotes:null,             // snapshot of the practitioner's notes for the summary
+      callPractitionerName:"",
+      callPractitionerTitle:"",
+      callDoctorId:"",
+      myId:null,          // practitioner: my room id
+      idleSecs:0,
+      _consoleSig:null,
+      mic:true, cam:true,
+      banner:"",
+      stream:null
+    };
+  }
+  var session = newSession();
+
+  // ---- camera ---------------------------------------------------------
+  function startCamera(){
+    if (session.stream || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      attachVideo(); return;
+    }
+    navigator.mediaDevices.getUserMedia({video:true, audio:false}).then(function(st){
+      session.stream = st; session.cam = true; syncCam(); render();
+    }).catch(function(){
+      session.stream = null; render();
+    });
+  }
+  function stopCamera(){
+    if (session.stream){
+      session.stream.getTracks().forEach(function(t){ t.stop(); });
+      session.stream = null;
+    }
+  }
+  function syncCam(){
+    if (session.stream) session.stream.getVideoTracks().forEach(function(t){ t.enabled = session.cam; });
+  }
+  function attachVideo(){
+    var v = document.querySelector("video.selfcam");
+    if (v && session.stream && session.cam){
+      if (v.srcObject !== session.stream) v.srcObject = session.stream;
+      var p = v.play(); if (p && p.catch) p.catch(function(){});
+    }
+  }
+
+  // ---- actions ------------------------------------------------------
+  function go(screen){ session.screen = screen; render(); }
+
+  function enter(){
+    var email = (session.email || "").trim();
+    var name = (session.name || "").trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ session.signinError = "Enter a valid email address."; return render(); }
+    if (!name){ session.signinError = "Enter your name."; return render(); }
+    session.signinError = "";
+    session.email = email; session.name = name;
+
+    if (session.role === "doctor"){
+      shared = load();
+      var id = slug(name);
+      var me = shared.doctors[id];
+      if (!me){
+        me = {id:id, name:name, title:session.profession, langs:session.langs, email:email,
+          since:Date.now(), consults:0, online:true,
+          busyWith:null, busyEmail:null, busyReason:null, callStart:null, notes:[], queue:[]};
+        shared.doctors[id] = me;
+      } else {
+        me.title = session.profession; me.langs = session.langs; me.email = email; me.online = true;
+      }
+      session.myId = id; session.idleSecs = 0; session._consoleSig = null;
+      save(); go("console");
+    } else {
+      go("browse");
+    }
+  }
+
+  function joinRoom(id){
+    shared = load();
+    var d = shared.doctors[id];
+    if (!d){ session.banner = "That room has closed."; session.joinedId = null; return go("browse"); }
+    session.joinedId = id; session.banner = "";
+    var name = session.name || "Patient";
+    if (freeRoom(d)){
+      d.busyWith = name; d.busyEmail = session.email; d.busyReason = "Consultation";
+      d.callStart = Date.now(); d.notes = [];
+      save();
+      session.phase = "live"; session.callStart = Date.now();
+      session.screen = "call"; render(); startCamera();
+    } else {
+      if (!d.queue.some(function(q){ return q.name === name; })){
+        d.queue.push({name:name, email:session.email, reason:"Consultation", at:Date.now()});
+      }
+      save();
+      session.phase = "waiting"; session.waitLeft = QUEUE_WAIT;
+      go("call");
+    }
+  }
+
+  function leaveQueue(){
+    shared = load();
+    var d = shared.doctors[session.joinedId];
+    var name = session.name || "Patient";
+    if (d){ d.queue = d.queue.filter(function(q){ return q.name !== name; }); save(); }
+    session.banner = (d ? first(d.name) : "The practitioner") +
+      " is still in the room — you can rejoin any time.";
+    session.joinedId = null; session.phase = null;
+    go("browse");
+  }
+
+  function hangUp(){ finalizePatientCall(); }
+
+  // Runs when the patient leaves the call — whether they hung up, or the
+  // practitioner ended it / closed the room from the other side. Either way
+  // the practitioner's notes are emailed to the address the patient signed
+  // in with, and the room stays online for the next patient.
+  function finalizePatientCall(){
+    shared = load();
+    var d = shared.doctors[session.joinedId];
+    var email = session.email;
+    var name = session.name || "Patient";
+    session.lastDuration = session.callStart ? Math.round((Date.now() - session.callStart) / 1000) : 0;
+
+    if (d && d.busyWith === name){
+      // patient ended the call
+      session.callNotes = (d.notes || []).slice();
+      session.callPractitionerName = d.name;
+      session.callPractitionerTitle = d.title;
+      session.callDoctorId = d.id;
+      endRoomConsult(d);        // emails notes to d.busyEmail (== email), logs, frees the room
+      save();
+    } else {
+      // practitioner ended it / signed out — pick the notes back up from the mailbox they wrote
+      var box = ((shared.mail || {})[email] || [])[0];
+      session.callNotes = box ? (box.notes || []).slice() : [];
+      session.callPractitionerName = box ? box.practitioner : (d ? d.name : "Your practitioner");
+      session.callPractitionerTitle = box ? box.title : (d ? d.title : "");
+      session.callDoctorId = d ? d.id : (session.joinedId || "");
+    }
+    stopCamera();
+    session.phase = null;
+    go("summary");
+  }
+
+  function addNote(text){
+    shared = load();
+    var me = shared.doctors[session.myId];
+    if (!me || !me.busyWith) return;
+    me.notes = me.notes || [];
+    var at = me.callStart ? mmss(Math.floor((Date.now() - me.callStart) / 1000)) : "0:00";
+    me.notes.push({ at: at, text: text });
+    save();
+    render();
+  }
+
+  function toggleOnline(on){
+    shared = load();
+    var me = shared.doctors[session.myId];
+    if (me){
+      me.online = on;
+      if (!on) endRoomConsult(me);   // a break ends any live consult and emails its notes
+      save();
+    }
+    session.idleSecs = 0;
+    render();
+  }
+
+  function admit(i){
+    shared = load();
+    var me = shared.doctors[session.myId];
+    if (me && me.queue[i]){
+      var p = me.queue.splice(i,1)[0];
+      me.busyWith = p.name; me.busyEmail = p.email || null; me.busyReason = p.reason;
+      me.callStart = Date.now(); me.notes = [];
+      save();
+    }
+    session.idleSecs = 0;
+    render();
+  }
+
+  function endConsult(){
+    shared = load();
+    var me = shared.doctors[session.myId];
+    if (me){ endRoomConsult(me); save(); }
+    session.idleSecs = 0;
+    render();
+  }
+
+  function signOut(){
+    if (session.role === "doctor" && session.myId){
+      shared = load();
+      var me = shared.doctors[session.myId];
+      if (me){
+        endRoomConsult(me);                   // send notes for any call still up
+        delete shared.doctors[session.myId];  // leaving the console removes the room from the list
+        save();
+      }
+    }
+    stopCamera();
+    session = newSession();
+    render();
+  }
+
+  function resetDemo(){
+    stopCamera();
+    try{ localStorage.removeItem(KEY); }catch(e){}
+    shared = seed(); save();
+    session = newSession();
+    render();
+  }
+
+  // ---- clock ------------------------------------------------------
+  function patchConsoleClock(me){
+    var t = document.querySelector(".js-timer");
+    if (t && me.callStart) t.textContent = mmss(Math.floor((Date.now() - me.callStart) / 1000));
+    var ih = document.querySelector(".js-idle-headline");
+    if (ih && me.online && !me.busyWith && me.queue.length){
+      ih.textContent = "Admitting " + first(me.queue[0].name) + " in " + Math.max(0, AUTO_ADMIT - session.idleSecs) + "s";
+    }
+  }
+  function consoleSig(me){
+    return [me.online, !!me.busyWith, me.queue.length, me.busyWith || "", (me.notes || []).length].join("|");
+  }
+
+  function tick(){
+    shared = load();
+    var s = session, dirty = false;
+
+    // ---- patient: queued, waiting to be pulled in ----
+    if (s.screen === "call" && s.phase === "waiting" && s.joinedId){
+      var dw = shared.doctors[s.joinedId];
+      var wname = s.name || "Patient";
+      if (!dw){
+        s.banner = "That room has closed."; s.joinedId = null; s.phase = null;
+        return go("browse");
+      }
+      if (dw.busyWith === wname){
+        s.phase = "live"; s.callStart = Date.now();   // a console admitted us early
+        startCamera();
+      } else {
+        s.waitLeft -= 1;
+        if (s.waitLeft <= 0){
+          dw.queue = dw.queue.filter(function(q){ return q.name !== wname; });
+          dw.busyWith = wname; dw.busyEmail = s.email; dw.busyReason = "Consultation";
+          dw.callStart = Date.now(); dw.notes = [];
+          save();
+          s.phase = "live"; s.callStart = Date.now();
+          startCamera();
+        }
+      }
+      render();
+      return;
+    }
+
+    // ---- patient: in the live call ----
+    if (s.screen === "call" && s.phase === "live" && s.joinedId){
+      var dc = shared.doctors[s.joinedId];
+      if (!dc || dc.busyWith !== (s.name || "Patient")){
+        return finalizePatientCall();   // practitioner ended it, or the room closed
+      }
+      render();
+      return;
+    }
+
+    // ---- practitioner console ----
+    if (s.screen === "console" && s.myId){
+      var me = shared.doctors[s.myId];
+      if (!me){ session = newSession(); return render(); }
+      if (me.online && !me.busyWith && me.queue.length){
+        s.idleSecs += 1;
+        if (s.idleSecs >= AUTO_ADMIT){
+          var next = me.queue.shift();
+          me.busyWith = next.name; me.busyEmail = next.email || null; me.busyReason = next.reason;
+          me.callStart = Date.now(); me.notes = [];
+          s.idleSecs = 0; dirty = true;
+        }
+      } else {
+        s.idleSecs = 0;
+      }
+      var sig = consoleSig(me);
+      if (dirty){ save(); s._consoleSig = sig; return render(); }
+      if (sig !== s._consoleSig){ s._consoleSig = sig; return render(); }
+      patchConsoleClock(me);   // no structural change — just tick the numbers, keep any half-typed note
+      return;
+    }
+  }
+
+  window.addEventListener("storage", function(e){
+    if (e.key !== KEY) return;
+    shared = load();
+    if (["browse","console","call","summary"].indexOf(session.screen) > -1) render();
+  });
+
+  // ---- event delegation ----------------------------------------------
+  document.addEventListener("click", function(e){
+    var t = e.target.closest("[data-act]");
+    if (!t) return;
+    var a = t.dataset.act;
+    if (a === "to-signin"){ session.role = "patient"; go("signin"); }
+    else if (a === "to-signin-doctor"){ session.role = "doctor"; go("signin"); }
+    else if (a === "to-landing"){ go("landing"); }
+    else if (a === "enter"){ enter(); }
+    else if (a === "signout"){ signOut(); }
+    else if (a === "reset"){ resetDemo(); }
+    else if (a === "join"){ joinRoom(t.dataset.id); }
+    else if (a === "leave-queue"){ leaveQueue(); }
+    else if (a === "hangup"){ hangUp(); }
+    else if (a === "back-to-rooms"){ session.banner = t.dataset.banner || ""; session.joinedId = null; go("browse"); }
+    else if (a === "rejoin"){ joinRoom(t.dataset.id); }
+    else if (a === "mic"){ session.mic = !session.mic; render(); }
+    else if (a === "cam"){
+      session.cam = !session.cam;
+      if (session.cam && !session.stream) startCamera();
+      else { syncCam(); render(); }
+    }
+    else if (a === "online"){ toggleOnline(true); }
+    else if (a === "offline"){ toggleOnline(false); }
+    else if (a === "admit"){ admit(+t.dataset.i); }
+    else if (a === "end-consult"){ endConsult(); }
+  });
+
+  document.addEventListener("change", function(e){
+    var el = e.target;
+    if (el.name === "role"){ session.role = el.value; render(); }
+    else if (el.name === "prof"){ session.profession = el.value; render(); }
+    else if (el.name === "avail"){ el.value === "open" ? toggleOnline(true) : toggleOnline(false); }
+  });
+
+  document.addEventListener("input", function(e){
+    var el = e.target;
+    if (el.dataset.field === "name"){
+      session.name = el.value;
+      var c = document.querySelector(".js-initials");
+      if (c) c.textContent = initials(el.value || "Your name");
+    }
+    else if (el.dataset.field === "email"){ session.email = el.value; }
+    else if (el.dataset.field === "langs"){ session.langs = el.value; }
+  });
+
+  document.addEventListener("submit", function(e){
+    var f = e.target.closest && e.target.closest(".js-note-form");
+    if (!f) return;
+    e.preventDefault();
+    var inp = f.querySelector(".js-note-input");
+    var text = (inp && inp.value || "").trim();
+    if (text) addNote(text);   // render() rebuilds the form with the input cleared
+  });
+
+  // ---- views ------------------------------------------------------
+  function navBar(){
+    var signedIn = ["browse","call","summary","console"].indexOf(session.screen) > -1;
+    var right = "";
+    if (session.screen === "landing"){
+      right = '<button class="btn btn-primary" style="min-height:44px" data-act="to-signin">Sign in</button>';
+    } else if (signedIn){
+      var who = session.role === "doctor"
+        ? esc((session.name || "Practitioner") + " · " + session.profession)
+        : esc(session.name || "Patient");
+      right = '<div style="display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap">' +
+        '<span class="tag tag-accent-2">' + who + '</span>' +
+        '<button class="btn btn-secondary" data-act="signout">Sign out</button></div>';
+    }
+    return '<div class="wrap nav"><span class="nav-brand">Openroom</span>' + right + '</div>';
+  }
+
+  function avatar(name, size, kind){
+    kind = kind || "accent";
+    var bg = kind === "accent" ? "var(--color-accent-200)" : "var(--color-accent-2-200)";
+    var fg = kind === "accent" ? "var(--color-accent-800)" : "var(--color-accent-2-800)";
+    return '<div class="avatar" style="width:' + size + 'px;height:' + size + 'px;background:' + bg +
+      ';color:' + fg + ';font-size:' + Math.round(size*0.34) + 'px">' + esc(initials(name)) + '</div>';
+  }
+
+  function screenLanding(){
+    var online = Object.keys(shared.doctors).filter(function(k){ return shared.doctors[k].online; }).length;
+    return '' +
+    '<div class="wrap" style="padding:var(--space-6) var(--space-6) var(--space-8);display:grid;' +
+      'grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--space-8);align-items:center">' +
+      '<div>' +
+        '<h6 style="color:var(--color-accent-700);margin-bottom:var(--space-3)">Consulting rooms that never close</h6>' +
+        '<h1 style="font-size:clamp(38px,5.5vw,64px);margin-bottom:var(--space-4);max-width:16ch">Someone is always in the room.</h1>' +
+        '<p style="font-size:17px;max-width:46ch;text-wrap:pretty">Practitioners open a room and stay in it all day. ' +
+          'You see who is in, read their title, and join the call. No booking, no waiting for a slot next week.</p>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:var(--space-3);margin-top:var(--space-6)">' +
+          '<button class="btn btn-primary" style="min-height:48px;padding-inline:var(--space-6)" data-act="to-signin">See who is in</button>' +
+          '<button class="btn btn-secondary" style="min-height:48px;padding-inline:var(--space-6)" data-act="to-signin-doctor">Open a room as a practitioner</button>' +
+        '</div>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:var(--space-2);margin-top:var(--space-4)">' +
+          '<span class="tag tag-neutral">General practitioners</span>' +
+          '<span class="tag tag-neutral">Nutritionists</span>' +
+          '<span class="tag tag-neutral">Therapists</span>' +
+          '<span class="tag tag-neutral">Paediatricians</span>' +
+        '</div>' +
+      '</div>' +
+      '<div style="position:relative;padding-bottom:var(--space-8);padding-left:var(--space-4)">' +
+        '<div class="washed slot" style="border-radius:999px 999px 40px 40px;overflow:hidden;aspect-ratio:4/5;box-shadow:var(--shadow-lg)">' +
+          '<div style="text-align:center;color:var(--color-accent-800);padding:var(--space-6)">' +
+            '<div style="font-size:44px;line-height:1">◍</div>' +
+            '<div style="font-family:var(--font-body);font-size:13px;font-weight:600;margin-top:var(--space-2);opacity:.8">A consultation in progress</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="card elev-md" style="position:absolute;left:0;bottom:0;max-width:230px;padding:var(--space-3) var(--space-4);gap:var(--space-1)">' +
+          '<div style="display:flex;align-items:center;gap:var(--space-2)">' +
+            '<span class="dot-pulse" style="width:9px;height:9px;background:var(--color-accent-2-600)"></span>' +
+            '<span class="card-kicker" style="color:var(--color-accent-2-700)">Live now</span>' +
+          '</div>' +
+          '<div style="font-size:14px">' + online + ' practitioners are in their rooms</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="wrap" style="padding:0 var(--space-6) var(--space-8)">' +
+      '<h2 style="margin-bottom:var(--space-6);max-width:22ch">How a call happens</h2>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:var(--space-4)">' +
+        stepCard(1,"See who is in","Every open room shows the practitioner's photograph and their title, so you know who you are about to speak to.") +
+        stepCard(2,"Join the call","A free room takes you straight in. A busy one holds your place and pulls you in when the person ahead hangs up.") +
+        stepCard(3,"Hang up — the room stays","You leave with the notes from your call. The practitioner stays online and the next patient goes in.") +
+      '</div>' +
+    '</div>' +
+    '<div class="footer"><div class="wrap" style="padding:var(--space-4) var(--space-6);display:flex;justify-content:space-between;gap:var(--space-3);flex-wrap:wrap">' +
+      '<span class="text-muted" style="font-size:12px">Prototype — no real calls are placed. Room state is shared across browser tabs on this device.</span>' +
+      '<button class="btn btn-ghost" style="font-size:12px" data-act="reset">Reset demo data</button>' +
+    '</div></div>';
+  }
+  function stepCard(n,title,body){
+    return '<div class="card elev-sm" style="padding:var(--space-4);gap:var(--space-3)">' +
+      '<div style="width:44px;height:44px;border-radius:50%;background:var(--color-accent-200);color:var(--color-accent-800);' +
+        'display:grid;place-items:center;font-family:var(--font-heading);font-size:18px">' + n + '</div>' +
+      '<div class="card-title">' + esc(title) + '</div>' +
+      '<p class="card-body" style="margin:0">' + esc(body) + '</p></div>';
+  }
+
+  function screenSignin(){
+    var isDoc = session.role === "doctor";
+    var profGrid = PROFS.map(function(p){
+      return '<label class="radio"><input type="radio" name="prof" value="' + esc(p) + '"' +
+        (session.profession === p ? " checked" : "") + '/><span class="dot"></span><span>' + esc(p) + '</span></label>';
+    }).join("");
+    var docBlock = !isDoc ? "" :
+      '<div style="display:flex;flex-direction:column;gap:var(--space-4)">' +
+        '<div class="field" style="margin:0">' +
+          '<label>Your title — patients see this above your room</label>' +
+          '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:var(--space-2) var(--space-3);margin-top:var(--space-1)">' +
+            profGrid +
+          '</div>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:var(--space-3)">' +
+          '<div class="avatar js-initials" style="width:64px;height:64px;background:var(--color-accent-2-200);color:var(--color-accent-2-800);font-size:21px">' +
+            esc(initials(session.name || "Your name")) + '</div>' +
+          '<p class="card-body" style="margin:0">Patients see your portrait next to your title. It is the one thing they judge before joining.</p>' +
+        '</div>' +
+        '<div class="field" style="margin:0"><label>Languages</label>' +
+          '<input class="input" data-field="langs" value="' + esc(session.langs) + '" /></div>' +
+      '</div>';
+
+    return '<div class="wrap" style="padding:var(--space-4) var(--space-6) var(--space-8);display:grid;' +
+      'grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:var(--space-8);align-items:start">' +
+      '<div style="padding-top:var(--space-4)">' +
+        '<h6 style="color:var(--color-accent-700);margin-bottom:var(--space-3)">Sign in</h6>' +
+        '<h1 style="font-size:clamp(32px,4vw,48px);margin-bottom:var(--space-4);max-width:18ch">Two doors into the same room.</h1>' +
+        '<p style="font-size:16px;max-width:42ch;text-wrap:pretty">Patients arrive and join. Practitioners pick the title patients will see above their room, then open it.</p>' +
+        '<button class="btn btn-ghost" style="margin-top:var(--space-3)" data-act="to-landing">Back to the home page</button>' +
+      '</div>' +
+      '<div class="card elev-md" style="padding:var(--space-6);gap:var(--space-4)">' +
+        '<div><div class="card-kicker">Who are you today?</div><h3 style="margin:0">Choose a door</h3></div>' +
+        '<div class="seg" style="align-self:start">' +
+          '<label class="seg-opt"><input type="radio" name="role" value="patient"' + (isDoc?"":" checked") + '/><span>I need care</span></label>' +
+          '<label class="seg-opt"><input type="radio" name="role" value="doctor"' + (isDoc?" checked":"") + '/><span>I\'m a practitioner</span></label>' +
+        '</div>' +
+        '<div class="field"><label>Email</label>' +
+          '<input class="input" type="email" data-field="email" value="' + esc(session.email) + '" placeholder="you@example.com" autocomplete="email" /></div>' +
+        '<div class="field"><label>Your name</label>' +
+          '<input class="input" data-field="name" value="' + esc(session.name) + '" placeholder="Full name" autocomplete="name" /></div>' +
+        docBlock +
+        (session.signinError ? '<p style="margin:0;font-size:13px;color:#b3261e">' + esc(session.signinError) + '</p>' : '') +
+        '<button class="btn btn-primary btn-block" style="min-height:44px" data-act="enter">' +
+          (isDoc ? "Open my room" : "See who is in") + '</button>' +
+        '<p class="text-muted" style="font-size:12px;margin:0">' +
+          (isDoc ? "Patients never see your email address. " : "Your practitioner’s call notes are emailed to this address when each call ends. ") +
+          'Prototype — no real calls are placed.</p>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function screenBrowse(){
+    var ids = Object.keys(shared.doctors);
+    var total = ids.length;
+    var free = ids.filter(function(k){ return freeRoom(shared.doctors[k]); }).length;
+    var mbox = (shared.mail || {})[session.email] || [];
+    var mailNote = mbox.length
+      ? '<p class="text-muted" style="font-size:12px;margin:0 0 var(--space-2)">' + mbox.length + ' call ' +
+        (mbox.length === 1 ? 'summary has' : 'summaries have') + ' been emailed to ' + esc(session.email) + '.</p>'
+      : '';
+    var banner = session.banner
+      ? '<div class="card" style="flex-direction:row;align-items:center;gap:var(--space-3);background:var(--color-accent-2-100);margin-bottom:var(--space-4);padding:var(--space-3) var(--space-4)">' +
+          '<span style="width:10px;height:10px;border-radius:50%;background:var(--color-accent-2-600);flex:none"></span>' +
+          '<span style="font-size:14px">' + esc(session.banner) + '</span></div>'
+      : "";
+
+    var cards = ids.map(function(k){
+      var d = shared.doctors[k];
+      var open = freeRoom(d);
+      var busy = d.online && !open;
+      var status = "";
+      if (!d.online) status = '<span class="tag tag-neutral">On a break</span>';
+      else if (open) status = '<span class="tag tag-accent-2">Open — join now</span>';
+      else status = '<span class="tag tag-accent">In a call · ' + d.queue.length + ' waiting</span>';
+      var joinLabel = !d.online ? "Room closed" : (open ? "Join the call" : "Join the queue");
+      return '<div class="card elev-sm" style="gap:var(--space-3);padding:var(--space-4)">' +
+        '<div style="display:flex;align-items:center;gap:var(--space-3)">' + avatar(d.name,60,"accent2") +
+          '<div style="min-width:0"><div class="card-title">' + esc(d.name) + '</div>' +
+          '<div style="font-size:13px;color:var(--color-accent-700)">' + esc(d.title) + '</div></div></div>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:var(--space-2);align-items:center">' + status +
+          '<span class="tag tag-neutral">' + esc(d.langs) + '</span></div>' +
+        '<div class="card-meta" style="justify-content:space-between">' +
+          '<span>In the room ' + dur(Date.now() - d.since) + '</span>' +
+          '<span>' + (d.consults||0) + ' consults today</span></div>' +
+        '<button class="btn btn-primary btn-block" style="min-height:44px"' + (d.online?"":" disabled") +
+          ' data-act="join" data-id="' + d.id + '">' + joinLabel + '</button>' +
+      '</div>';
+    }).join("");
+
+    return '<div class="wrap" style="padding:var(--space-4) var(--space-6) var(--space-8)">' +
+      banner +
+      '<div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:var(--space-3);margin-bottom:var(--space-4)">' +
+        '<div><h6 style="color:var(--color-accent-700);margin-bottom:var(--space-2)">' + free + ' of ' + total + ' rooms free</h6>' +
+        '<h2 style="margin:0">In the room right now</h2></div>' +
+        '<p class="text-muted" style="margin:0;font-size:13px;max-width:34ch">Rooms marked open take you straight in. Busy rooms hold your place in the queue.</p>' +
+      '</div>' +
+      mailNote +
+      '<p class="text-muted" style="font-size:12px;margin:0 0 var(--space-4)">Tip: open this page in a second tab and sign in as a practitioner — join that room here, and watch the practitioner console admit you while their room stays live.</p>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:var(--space-4)">' + cards + '</div>' +
+    '</div>';
+  }
+
+  function screenCall(){
+    var d = shared.doctors[session.joinedId] || {name:"Practitioner",title:"",langs:"",since:Date.now()};
+    if (session.phase === "waiting"){
+      var pos = 1;
+      var idx = d.queue ? d.queue.findIndex(function(q){ return q.name === (session.name||"Patient"); }) : -1;
+      pos = idx >= 0 ? idx + 1 : (d.queue ? d.queue.length : 1);
+      return '<div class="wrap" style="max-width:640px;padding:var(--space-8) var(--space-6)">' +
+        '<div class="card elev-md" style="padding:var(--space-6);gap:var(--space-4);align-items:flex-start">' +
+          '<div style="display:flex;align-items:center;gap:var(--space-3)">' + avatar(d.name,68,"accent") +
+            '<div><div class="card-kicker">Waiting room</div><h3 style="margin:0">' + esc(d.name) + '</h3>' +
+            '<div style="font-size:13px;color:var(--color-accent-700)">' + esc(d.title) + '</div></div></div>' +
+          '<h2 style="margin:0">You are number ' + pos + ' in the queue</h2>' +
+          '<p style="margin:0;font-size:15px">The room stays open the whole time. You will be pulled in as soon as the person ahead of you hangs up.</p>' +
+          '<div style="display:flex;align-items:center;gap:var(--space-2);font-size:14px;color:var(--color-accent-700)">' +
+            '<span class="dot-pulse fast" style="width:8px;height:8px;background:var(--color-accent)"></span>' +
+            '<span>Joining in about ' + Math.max(0, session.waitLeft) + 's</span></div>' +
+          '<button class="btn btn-secondary" data-act="leave-queue">Leave the queue</button>' +
+        '</div></div>';
+    }
+
+    var secs = session.callStart ? Math.floor((Date.now() - session.callStart)/1000) : 0;
+    var fn = first(d.name);
+    var self = (session.stream && session.cam)
+      ? '<video class="selfcam" autoplay playsinline muted></video>'
+      : '<div class="slot slot-video" style="font-size:15px;color:var(--color-neutral-300)">' +
+          (session.cam ? "You" : "Camera off") + '</div>';
+
+    return '<div class="wrap" style="padding:var(--space-3) var(--space-6) var(--space-8)">' +
+      '<div style="display:flex;flex-wrap:wrap;gap:var(--space-4);align-items:flex-start">' +
+        '<div style="flex:1 1 480px;min-width:0;display:flex;flex-direction:column;gap:var(--space-3)">' +
+          '<div style="position:relative;border-radius:32px;overflow:hidden;background:var(--color-neutral-800);aspect-ratio:16/10;box-shadow:var(--shadow-lg)">' +
+            '<div class="slot slot-video" style="font-size:52px">' + esc(initials(d.name)) + '</div>' +
+            '<div class="stage-label" style="left:var(--space-4);top:var(--space-4);display:flex;gap:var(--space-2);align-items:center">' +
+              '<span class="tag" style="background:var(--color-neutral-900);color:var(--color-neutral-200)">' + mmss(secs) + '</span>' +
+              '<span class="tag" style="background:var(--color-accent-700);color:var(--color-accent-100)">Live</span></div>' +
+            '<div class="stage-label" style="left:var(--space-4);bottom:var(--space-4)">' +
+              '<div style="font-family:var(--font-heading);font-size:20px;color:var(--color-neutral-100)">' + esc(d.name) + '</div>' +
+              '<div style="font-size:13px;color:var(--color-neutral-300)">' + esc(d.title) + '</div></div>' +
+            '<div style="position:absolute;right:var(--space-4);bottom:var(--space-4);width:26%;min-width:120px;aspect-ratio:4/3;' +
+              'border-radius:20px;overflow:hidden;background:var(--color-neutral-900);box-shadow:var(--shadow-md)">' + self + '</div>' +
+          '</div>' +
+          '<div style="display:flex;justify-content:center;gap:var(--space-3);flex-wrap:wrap">' +
+            '<button class="btn btn-secondary" style="min-height:44px;min-width:44px" data-act="mic">' + (session.mic?"Mute":"Unmute") + '</button>' +
+            '<button class="btn btn-secondary" style="min-height:44px;min-width:44px" data-act="cam">' + (session.cam?"Camera off":"Camera on") + '</button>' +
+            '<button class="btn btn-primary" style="min-height:44px;background:var(--color-accent-700)" data-act="hangup">Hang up</button>' +
+          '</div>' +
+        '</div>' +
+        '<div style="flex:1 1 280px;min-width:0;display:flex;flex-direction:column;gap:var(--space-3)">' +
+          '<div class="card" style="padding:var(--space-4)">' +
+            '<div class="card-kicker">Practitioner</div><div class="card-title">' + esc(d.name) + '</div>' +
+            '<p class="card-body" style="margin:0">' + esc(d.title) + ' · ' + esc(d.langs) + '</p>' +
+            '<div class="card-meta">In the room ' + dur(Date.now() - d.since) + '</div></div>' +
+          '<div class="card" style="padding:var(--space-4);background:var(--color-accent-2-100)">' +
+            '<div class="card-title" style="font-size:15px">When you hang up</div>' +
+            '<p class="card-body" style="margin:0;color:var(--color-accent-2-800)">The room does not close. ' + esc(fn) +
+              ' stays online and the next patient in the queue is admitted straight away.</p></div>' +
+          '<div class="card" style="padding:var(--space-4);gap:var(--space-3)">' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)">' +
+              '<div class="card-kicker">Notes from ' + esc(fn) + '</div>' +
+              ((d.notes && d.notes.length) ? '<span class="tag tag-accent-2">Live</span>' : '') + '</div>' +
+            ((d.notes && d.notes.length)
+              ? '<div style="display:flex;flex-direction:column;gap:var(--space-2)">' +
+                  d.notes.map(function(n){
+                    return '<div style="display:flex;gap:var(--space-2)">' +
+                      '<span class="text-muted" style="font-size:12px;flex:none;width:40px">' + esc(n.at) + '</span>' +
+                      '<span style="font-size:14px">' + esc(n.text) + '</span></div>';
+                  }).join("") +
+                '</div>'
+              : '<p class="card-body" style="margin:0">' + esc(fn) + ' adds notes here during the call. They are emailed to ' + esc(session.email) + ' when you hang up.</p>') +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function noteRows(list, size){
+    if (!list || !list.length){
+      return '<p class="card-body" style="margin:0">No notes were sent during this call.</p>';
+    }
+    return list.map(function(n){
+      return '<div style="display:flex;gap:var(--space-3);padding-bottom:var(--space-3);border-bottom:1px solid var(--color-divider)">' +
+        '<span class="text-muted" style="font-size:12px;flex:none;width:44px">' + esc(n.at) + '</span>' +
+        '<span style="font-size:' + size + 'px">' + esc(n.text) + '</span></div>';
+    }).join("");
+  }
+
+  function screenSummary(){
+    var dname = session.callPractitionerName || "Your practitioner";
+    var dtitle = session.callPractitionerTitle || "";
+    var did = session.callDoctorId || "";
+    var stillThere = !!(did && shared.doctors[did]);
+    var fn = first(dname);
+    var mins = Math.max(1, Math.round((session.lastDuration||0)/60));
+    var notes = session.callNotes || [];
+    return '<div class="wrap" style="max-width:820px;padding:var(--space-6) var(--space-6) var(--space-8);display:flex;flex-direction:column;gap:var(--space-4)">' +
+      '<div><h6 style="color:var(--color-accent-700);margin-bottom:var(--space-2)">Call ended · ' + mins + ' min</h6>' +
+        '<h1 style="font-size:clamp(30px,4vw,44px);margin:0;max-width:20ch">Here is what you agreed.</h1></div>' +
+      '<div class="card elev-md" style="padding:var(--space-4);gap:var(--space-4)">' +
+        '<div style="display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap">' + avatar(dname,56,"accent2") +
+          '<div style="min-width:0;flex:1"><div class="card-title">' + esc(dname) + '</div>' +
+          '<div style="font-size:13px;color:var(--color-accent-700)">' + esc(dtitle) + '</div></div>' +
+          (stillThere
+            ? '<span class="tag tag-accent-2">' + esc(fn) + ' is still in the room</span>'
+            : '<span class="tag tag-neutral">Room closed</span>') + '</div>' +
+        '<div class="card" style="flex-direction:row;align-items:center;gap:var(--space-2);background:var(--color-accent-2-100);padding:var(--space-3) var(--space-4)">' +
+          '<span style="width:8px;height:8px;border-radius:50%;background:var(--color-accent-2-600);flex:none"></span>' +
+          '<span style="font-size:13px">' + (notes.length ? 'These notes from ' + esc(fn) + ' were emailed to ' : 'A call summary was emailed to ') + esc(session.email) + '.</span></div>' +
+        '<div style="display:flex;flex-direction:column;gap:var(--space-3)">' +
+          '<div class="card-kicker">Notes from ' + esc(fn) + '</div>' + noteRows(notes, 15) + '</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--space-3)">' +
+          '<div class="card" style="padding:var(--space-3) var(--space-4);gap:2px;background:var(--color-neutral-100)">' +
+            '<div class="card-meta">Emailed to</div><div style="font-size:14px">' + esc(session.email) + '</div></div>' +
+          '<div class="card" style="padding:var(--space-3) var(--space-4);gap:2px;background:var(--color-neutral-100)">' +
+            '<div class="card-meta">Kept in your history</div><div style="font-size:14px">These notes and the call time stay on your record</div></div>' +
+        '</div>' +
+        '<div style="display:flex;gap:var(--space-3);flex-wrap:wrap">' +
+          '<button class="btn btn-primary" style="min-height:44px" data-act="back-to-rooms" data-banner="' +
+            esc(dname + " stayed in the room. The next patient in the queue was admitted.") + '">Back to the rooms</button>' +
+          (stillThere ? '<button class="btn btn-secondary" style="min-height:44px" data-act="rejoin" data-id="' + esc(did) + '">Rejoin ' + esc(fn) + '\'s room</button>' : '') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function screenConsole(){
+    var me = shared.doctors[session.myId];
+    if (!me){ return '<div class="wrap" style="padding:var(--space-8) var(--space-6)"><p>Your room was closed. <button class="btn btn-ghost" data-act="to-landing">Home</button></p></div>'; }
+    var live = me.online && !!me.busyWith;
+    var secs = me.callStart ? Math.floor((Date.now() - me.callStart)/1000) : 0;
+
+    var stage;
+    if (live){
+      var pf = first(me.busyWith);
+      stage = '<div style="position:relative;border-radius:32px;overflow:hidden;background:var(--color-neutral-800);aspect-ratio:16/10;box-shadow:var(--shadow-lg)">' +
+        '<div class="slot slot-video" style="font-size:52px">' + esc(initials(me.busyWith)) + '</div>' +
+        '<div class="stage-label" style="left:var(--space-4);top:var(--space-4);display:flex;gap:var(--space-2)">' +
+          '<span class="tag js-timer" style="background:var(--color-neutral-900);color:var(--color-neutral-200)">' + mmss(secs) + '</span>' +
+          '<span class="tag" style="background:var(--color-accent-700);color:var(--color-accent-100)">Live</span></div>' +
+        '<div class="stage-label" style="left:var(--space-4);bottom:var(--space-4)">' +
+          '<div style="font-family:var(--font-heading);font-size:20px;color:var(--color-neutral-100)">' + esc(me.busyWith) + '</div>' +
+          '<div style="font-size:13px;color:var(--color-neutral-300)">' + esc(me.busyReason || "Consultation") + '</div></div>' +
+      '</div>' +
+      '<div style="display:flex;justify-content:center;gap:var(--space-3);flex-wrap:wrap">' +
+        '<button class="btn btn-secondary" style="min-height:44px" data-act="mic">' + (session.mic?"Mute":"Unmute") + '</button>' +
+        '<button class="btn btn-secondary" style="min-height:44px" data-act="cam">' + (session.cam?"Camera off":"Camera on") + '</button>' +
+        '<button class="btn btn-primary" style="min-height:44px;background:var(--color-accent-700)" data-act="end-consult">End consultation</button>' +
+      '</div>' +
+      '<div class="card elev-sm" style="padding:var(--space-4);gap:var(--space-3)">' +
+        '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:var(--space-2);flex-wrap:wrap">' +
+          '<div><div class="card-kicker">Live notes</div>' +
+          '<h3 style="margin:0;font-size:18px">What ' + esc(pf) + ' sees</h3></div>' +
+          '<span class="tag tag-accent-2">Streamed to the patient</span></div>' +
+        ((me.notes && me.notes.length)
+          ? '<div style="display:flex;flex-direction:column;gap:0">' +
+              me.notes.map(function(n){
+                return '<div style="display:flex;gap:var(--space-3);padding-bottom:var(--space-2);border-bottom:1px solid var(--color-divider)">' +
+                  '<span class="text-muted" style="font-size:12px;flex:none;width:44px">' + esc(n.at) + '</span>' +
+                  '<span style="font-size:14px">' + esc(n.text) + '</span></div>';
+              }).join("") +
+            '</div>'
+          : '<p class="card-body" style="margin:0">Nothing sent yet. What you type appears on ' + esc(pf) + '\'s screen now, and is emailed to them when the call ends.</p>') +
+        '<form class="js-note-form" style="display:flex;gap:var(--space-2);margin-top:var(--space-1)">' +
+          '<input class="js-note-input input" autocomplete="off" placeholder="Type a note and press Enter" />' +
+          '<button class="btn btn-primary" type="submit" style="min-height:44px">Send</button>' +
+        '</form>' +
+      '</div>';
+    } else {
+      var headline, body, reopen = "";
+      if (me.online && me.queue.length){
+        headline = "Admitting " + first(me.queue[0].name) + " in " + Math.max(0, AUTO_ADMIT - session.idleSecs) + "s";
+      } else if (me.online){
+        headline = "Waiting for the next patient";
+      } else {
+        headline = "Your room is closed";
+      }
+      if (me.online){
+        body = "You stay listed as available. Patients see your title and join without booking; the queue admits them one at a time.";
+      } else {
+        body = "Patients can see you but cannot join. Anyone waiting keeps their place until you reopen.";
+        reopen = '<button class="btn btn-primary" style="min-height:44px" data-act="online">Reopen the room</button>';
+      }
+      stage = '<div class="card elev-sm" style="aspect-ratio:16/10;justify-content:center;align-items:flex-start;' +
+        'padding:var(--space-8);gap:var(--space-3);background:var(--color-neutral-200)">' +
+        '<div style="display:flex;align-items:center;gap:var(--space-2)">' +
+          '<span class="dot-pulse" style="width:9px;height:9px;background:var(--color-accent-2-600)"></span>' +
+          '<span class="card-kicker" style="color:var(--color-accent-2-700)">' + (me.online?"Room open":"On a break") + '</span></div>' +
+        '<h3 class="js-idle-headline" style="margin:0;max-width:24ch">' + esc(headline) + '</h3>' +
+        '<p class="card-body" style="margin:0;max-width:40ch;flex:none">' + esc(body) + '</p>' + reopen +
+      '</div>';
+    }
+
+    var queueRows = me.queue.length
+      ? me.queue.map(function(q,i){
+          return '<div style="display:flex;align-items:center;gap:var(--space-3);padding-bottom:var(--space-3);border-bottom:1px solid var(--color-divider)">' +
+            avatar(q.name,38,"accent") +
+            '<div style="min-width:0;flex:1"><div style="font-size:14px;font-weight:600">' + esc(q.name) + '</div>' +
+            '<div class="card-meta">' + esc(q.reason) + ' · waiting ' + dur(Date.now() - q.at) + '</div></div>' +
+            '<button class="btn btn-ghost" data-act="admit" data-i="' + i + '">Admit</button></div>';
+        }).join("")
+      : '<p class="card-body" style="margin:0">Nobody waiting. The next patient to open your room goes straight through.</p>';
+
+    var logRows = ((shared.log || {})[me.id] || []).map(function(l){
+      return '<div style="display:flex;justify-content:space-between;gap:var(--space-2);font-size:13px">' +
+        '<span>' + esc(l.name) + '</span><span class="text-muted">' + esc(l.detail) + '</span></div>';
+    }).join("") || '<p class="card-body" style="margin:0">Nothing yet today.</p>';
+
+    return '<div class="wrap" style="padding:var(--space-3) var(--space-6) var(--space-8)">' +
+      '<div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:var(--space-3);margin-bottom:var(--space-4)">' +
+        '<div style="display:flex;align-items:center;gap:var(--space-3)">' + avatar(me.name,60,"accent2") +
+          '<div><h6 style="color:var(--color-accent-700);margin-bottom:var(--space-1)">' + esc(me.title) + '</h6>' +
+          '<h2 style="margin:0">' + esc(me.name) + '</h2></div></div>' +
+        '<div class="seg">' +
+          '<label class="seg-opt"><input type="radio" name="avail" value="open"' + (me.online?" checked":"") + '/><span>Room open</span></label>' +
+          '<label class="seg-opt"><input type="radio" name="avail" value="break"' + (me.online?"":" checked") + '/><span>On a break</span></label>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:var(--space-4);align-items:flex-start">' +
+        '<div style="flex:1 1 480px;min-width:0;display:flex;flex-direction:column;gap:var(--space-3)">' + stage +
+          '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:var(--space-3)">' +
+            statCard("Consults today", String(me.consults||0)) +
+            statCard("Time in the room", hm(Date.now() - me.since)) +
+            statCard("Average call", "9 min") +
+          '</div>' +
+        '</div>' +
+        '<div style="flex:1 1 280px;min-width:0;display:flex;flex-direction:column;gap:var(--space-3)">' +
+          '<div class="card" style="padding:var(--space-4);gap:var(--space-3)">' +
+            '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:var(--space-2)">' +
+              '<div class="card-title" style="font-size:15px">Waiting</div>' +
+              '<span class="tag tag-accent">' + me.queue.length + ' in the queue</span></div>' + queueRows +
+          '</div>' +
+          '<div class="card" style="padding:var(--space-4);gap:var(--space-2)">' +
+            '<div class="card-title" style="font-size:15px">Earlier today</div>' + logRows +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+  function statCard(label,val){
+    return '<div class="card" style="padding:var(--space-3) var(--space-4);gap:2px">' +
+      '<div class="card-meta">' + esc(label) + '</div>' +
+      '<div style="font-family:var(--font-heading);font-size:26px">' + esc(val) + '</div></div>';
+  }
+
+  function render(){
+    var body;
+    switch (session.screen){
+      case "signin":  body = screenSignin();  break;
+      case "browse":  body = screenBrowse();  break;
+      case "call":    body = screenCall();    break;
+      case "summary": body = screenSummary(); break;
+      case "console": body = screenConsole(); break;
+      default:        body = screenLanding();
+    }
+    document.getElementById("app").innerHTML =
+      '<div style="min-height:100vh">' + navBar() + body + '</div>';
+    // keep the console signature in lockstep with what's on screen, so tick()
+    // only rebuilds the console (losing a half-typed note) on a real change
+    if (session.screen === "console" && session.myId){
+      var m2 = (shared.doctors || {})[session.myId];
+      if (m2) session._consoleSig = consoleSig(m2);
+    }
+    attachVideo();
+  }
+
+  render();
+  setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>
