@@ -168,14 +168,48 @@
   var HOST_ID = "openroom-" + ROOM + "-host";
   var SHARE_URL = location.origin + location.pathname + (ROOM === "main" ? "" : "?room=" + ROOM);
 
-  // Google STUN for the common cases + OpenRelay's free public TURN so calls
-  // still connect across strict/symmetric NATs and mobile networks.
-  var ICE = { iceServers: [
-    { urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"] },
+  // Two strangers on two different networks essentially never connect on
+  // STUN alone — one of them is behind a NAT/firewall that blocks a direct
+  // path often enough that a TURN relay is what actually makes "different
+  // locations" work, not an edge case. The public shared relay below is
+  // free but can be slow/overloaded since anyone can use it; for a private,
+  // reliable relay, sign up free at https://www.metered.ca (no card needed),
+  // create a TURN app, and paste its subdomain + API key below — everything
+  // else here keeps working as a fallback either way.
+  var TURN_PROVIDER = { app: "", key: "" };   // e.g. app:"openroom", key:"xxxxxxxxxxxx"
+
+  var STATIC_ICE_SERVERS = [
+    { urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302", "stun:stun.cloudflare.com:3478"] },
     { urls: "turn:openrelay.metered.ca:80", username: "openrelayproject", credential: "openrelayproject" },
     { urls: "turn:openrelay.metered.ca:443", username: "openrelayproject", credential: "openrelayproject" },
     { urls: "turn:openrelay.metered.ca:443?transport=tcp", username: "openrelayproject", credential: "openrelayproject" }
-  ]};
+  ];
+
+  // Fetched once per page load (Metered's credentials are short-lived tokens,
+  // not secrets worth hiding — they only ever grant relay usage) and reused
+  // for every Peer this tab creates, including retries. Any failure (no key
+  // configured, network hiccup, slow response) quietly falls back to the
+  // static list above, so this can never be the thing that breaks a call.
+  var iceServersPromise = null;
+  function getIceServers(){
+    if (iceServersPromise) return iceServersPromise;
+    if (!TURN_PROVIDER.app || !TURN_PROVIDER.key){
+      iceServersPromise = Promise.resolve(STATIC_ICE_SERVERS);
+      return iceServersPromise;
+    }
+    var url = "https://" + TURN_PROVIDER.app + ".metered.ca/api/v1/turn/credentials?apiKey=" + encodeURIComponent(TURN_PROVIDER.key);
+    iceServersPromise = new Promise(function(resolve){
+      var done = false;
+      var settle = function(v){ if (!done){ done = true; resolve(v); } };
+      setTimeout(function(){ settle(STATIC_ICE_SERVERS); }, 5000);
+      fetch(url).then(function(r){ return r.ok ? r.json() : Promise.reject(new Error("bad response")); })
+        .then(function(servers){
+          settle((Array.isArray(servers) && servers.length) ? servers.concat(STATIC_ICE_SERVERS[0]) : STATIC_ICE_SERVERS);
+        })
+        .catch(function(){ settle(STATIC_ICE_SERVERS); });
+    });
+    return iceServersPromise;
+  }
 
   var SECURE = (window.isSecureContext !== false) && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
   var LIB_OK = (typeof Peer !== "undefined");
@@ -243,7 +277,13 @@
     makeHostPeer();
   }
   function makeHostPeer(){
-    var p = new Peer(HOST_ID, { config: ICE, debug: 1 });
+    getIceServers().then(function(iceServers){
+      if (!host) return;   // room was closed while credentials were loading
+      var p = new Peer(HOST_ID, { config: { iceServers: iceServers }, debug: 1 });
+      bindHostPeer(p);
+    });
+  }
+  function bindHostPeer(p){
     host.peer = p;
     p.on("open", function(){ host.ready = true; host.err = ""; host.tries = 0; render(); pump(); });
     p.on("connection", hostOnConn);
@@ -383,7 +423,15 @@
       else { pt.phase = "connect-failed"; render(); }
     }, CONNECT_TIMEOUT_MS);
 
-    var p = new Peer({ config: ICE, debug: 1 });
+    var startedFor = pt, myTry = pt.connectTries;
+    getIceServers().then(function(iceServers){
+      // Superseded by a retry or a leave while the (cached-after-first-time)
+      // credential lookup was in flight -- let that newer attempt own the peer.
+      if (pt !== startedFor || pt.connectTries !== myTry || pt.phase !== "connecting") return;
+      bindPatientPeer(new Peer({ config: { iceServers: iceServers }, debug: 1 }));
+    });
+  }
+  function bindPatientPeer(p){
     pt.peer = p;
     p.on("open", function(){
       var conn;
