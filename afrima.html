@@ -217,8 +217,9 @@
 
   // ---- session ---------------------------------------------------------
   var PROFS = ["General practitioner", "Nutritionist", "Therapist / counsellor", "Paediatrician"];
+  var SEEK_OPTIONS = ["Any available practitioner"].concat(PROFS);
   var S = { screen: "landing", role: "patient", name: "", profession: "General practitioner",
-            title: "General practitioner", langs: "English, Swahili", err: "", toast: "" };
+            title: "General practitioner", langs: "English, Swahili", seek: SEEK_OPTIONS[0], err: "", toast: "" };
   var host = null;   // practitioner runtime
   var pt = null;     // patient runtime
   var noteDraft = "";
@@ -261,7 +262,8 @@
   }
   function hostOnConn(conn){
     conn.on("open", function(){
-      host.clients[conn.peer] = { id: conn.peer, name: (conn.metadata && conn.metadata.name) || "Patient", conn: conn, at: Date.now() };
+      host.clients[conn.peer] = { id: conn.peer, name: (conn.metadata && conn.metadata.name) || "Patient",
+        seek: (conn.metadata && conn.metadata.seek) || "", conn: conn, at: Date.now() };
       try { conn.send({ t: "hello", name: S.name, title: S.title }); } catch (e) {}
       if (host.currentId !== conn.peer && host.queue.indexOf(conn.peer) < 0) host.queue.push(conn.peer);
       pump(); render();
@@ -345,7 +347,7 @@
     var p = new Peer({ config: ICE, debug: 1 });
     pt.peer = p;
     p.on("open", function(){
-      var conn = p.connect(HOST_ID, { metadata: { name: S.name }, reliable: true });
+      var conn = p.connect(HOST_ID, { metadata: { name: S.name, seek: S.seek }, reliable: true });
       pt.conn = conn;
       conn.on("open", function(){ if (pt.phase === "connecting") pt.phase = "waiting"; render(); });
       conn.on("data", ptOnData);
@@ -456,6 +458,7 @@
   document.addEventListener("change", function(e){
     if (e.target.name === "role"){ S.role = e.target.value; render(); }
     else if (e.target.name === "prof"){ S.profession = e.target.value; S.title = e.target.value; render(); }
+    else if (e.target.name === "seek"){ S.seek = e.target.value; render(); }
   });
   document.addEventListener("input", function(e){
     var f = e.target.dataset.field;
@@ -623,6 +626,17 @@
         '<div class="field" style="margin:0"><label>Languages</label>' +
           '<input class="input" data-field="langs" value="' + esc(S.langs) + '" /></div>' +
       '</div>';
+    var seekGrid = SEEK_OPTIONS.map(function(p){
+      return '<label class="radio"><input type="radio" name="seek" value="' + esc(p) + '"' +
+        (S.seek === p ? " checked" : "") + '/><span class="dot"></span><span>' + esc(p) + '</span></label>';
+    }).join("");
+    var patBlock = isDoc ? "" :
+      '<div class="field" style="margin:0">' +
+        '<label>Who would you like to see?</label>' +
+        '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:var(--space-2) var(--space-3);margin-top:var(--space-1)">' +
+          seekGrid +
+        '</div>' +
+      '</div>';
 
     return navBar() +
     warnBanner() +
@@ -642,7 +656,7 @@
         '</div>' +
         '<div class="field"><label>Your name</label>' +
           '<input class="input" data-field="name" value="' + esc(S.name) + '" placeholder="Full name" autocomplete="name" /></div>' +
-        docBlock +
+        docBlock + patBlock +
         (S.err ? '<p style="margin:0;font-size:13px;color:#b3261e">' + esc(S.err) + '</p>' : '') +
         '<button class="btn btn-primary btn-block" style="min-height:44px"' + ((LIB_OK && SECURE) ? '' : ' disabled') + ' data-act="enter">' +
           (isDoc ? "Open my room" : "See who is in") + '</button>' +
@@ -676,7 +690,10 @@
           var e = host.clients[id]; if (!e) return "";
           return '<div style="display:flex;align-items:center;gap:var(--space-3);padding:6px 0;border-bottom:1px solid var(--color-divider)">' +
             avatarHtml(e.name, 34, "accent") +
-            '<div style="flex:1;min-width:0;font-size:14px;font-weight:600">' + esc(e.name) + '</div>' +
+            '<div style="flex:1;min-width:0">' +
+              '<div style="font-size:14px;font-weight:600">' + esc(e.name) + '</div>' +
+              (e.seek && e.seek !== SEEK_OPTIONS[0] ? '<div class="text-muted" style="font-size:12px">wants ' + esc(e.seek) + '</div>' : '') +
+            '</div>' +
             '<span class="text-muted" style="font-size:12px">waiting</span></div>';
         }).join("")
       : '<p class="card-body" style="margin:0">Nobody waiting. The next person to open the link goes straight through.</p>';
@@ -771,8 +788,10 @@
           '<div style="display:flex;align-items:center;gap:var(--space-3)">' + avatarHtml(pr.name || "Practitioner", 64, "accent") +
             '<div><div class="card-kicker">Waiting room</div><h3 style="margin:0">' + esc(pr.name || "The practitioner") + '</h3>' +
             (pr.title ? '<div style="font-size:13px;color:var(--color-accent-700)">' + esc(pr.title) + '</div>' : '') + '</div></div>' +
-          '<h2 style="margin:0">' + (pt.pos ? "You are number " + pt.pos + " in the queue" : "You’re in the queue") + '</h2>' +
-          '<p style="margin:0;font-size:15px">The room stays open the whole time. You’ll be pulled in automatically as soon as the person ahead hangs up.</p>' +
+          '<h2 style="margin:0">Dear ' + esc(S.name || "there") + ',</h2>' +
+          '<p style="margin:0;font-size:15px">' +
+            (pt.pos && pt.pos > 1 ? "You are number " + pt.pos + " in the queue. " : "You’re next in the queue. ") +
+            'Your practitioner will attend to you in the next few minutes. The room stays open the whole time — you’ll be pulled in automatically as soon as it’s your turn.</p>' +
           '<div style="display:flex;align-items:center;gap:var(--space-2);font-size:14px;color:var(--color-accent-700)">' +
             '<span class="dot-pulse fast" style="width:8px;height:8px;background:var(--color-accent)"></span><span>Holding your place…</span></div>' +
           '<button class="btn btn-secondary" data-act="leave">Leave the queue</button>' +
@@ -784,6 +803,12 @@
           '<div style="flex:1 1 480px;min-width:0;display:flex;flex-direction:column;gap:var(--space-3)">' +
             callStage(pr.name || "Practitioner", pr.title || "") +
             callControls("pt-hangup", "Hang up") +
+            '<div class="card elev-sm" style="padding:var(--space-4);gap:var(--space-3)">' +
+              '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:var(--space-2);flex-wrap:wrap">' +
+                '<div><div class="card-kicker">Live notes</div><h3 style="margin:0;font-size:18px">Notes from ' + esc(fn) + '</h3></div>' +
+                '<span class="tag tag-accent-2">Streamed to you</span></div>' +
+              notesList(pt.notes, fn + " adds notes here during the call. You keep them when it ends.") +
+            '</div>' +
           '</div>' +
           '<div style="flex:1 1 280px;min-width:0;display:flex;flex-direction:column;gap:var(--space-3)">' +
             '<div class="card" style="padding:var(--space-4)">' +
@@ -793,10 +818,6 @@
             '<div class="card" style="padding:var(--space-4);background:var(--color-accent-2-100)">' +
               '<div class="card-title" style="font-size:15px">When you hang up</div>' +
               '<p class="card-body" style="margin:0;color:var(--color-accent-2-800)">The room doesn’t close. ' + esc(fn) + ' stays online and the next patient is admitted straight away.</p></div>' +
-            '<div class="card" style="padding:var(--space-4);gap:var(--space-3)">' +
-              '<div class="card-kicker">Notes from ' + esc(fn) + '</div>' +
-              notesList(pt.notes, esc(fn) + " adds notes here during the call. You keep them when it ends.") +
-            '</div>' +
           '</div>' +
         '</div>' +
       '</div>';
