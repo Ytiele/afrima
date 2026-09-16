@@ -180,6 +180,12 @@
   var SECURE = (window.isSecureContext !== false) && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
   var LIB_OK = (typeof Peer !== "undefined");
 
+  // Nothing should ever hang forever on a bad network: these bound how long
+  // we wait before retrying (fresh ICE gathering sometimes just gets luckier)
+  // and how many attempts we make before telling the person plainly.
+  var CONNECT_TIMEOUT_MS = 12000, MAX_CONNECT_RETRIES = 2;
+  var JOIN_TIMEOUT_MS = 12000, MAX_JOIN_RETRIES = 2;
+
   // ---- helpers ----------------------------------------------------------
   function esc(s){
     return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
@@ -268,9 +274,27 @@
       if (host.currentId !== conn.peer && host.queue.indexOf(conn.peer) < 0) host.queue.push(conn.peer);
       pump(); render();
     });
-    conn.on("data", function(d){ if (d && d.t === "bye") hostDrop(conn.peer); });
+    conn.on("data", function(d){
+      if (!d) return;
+      if (d.t === "bye") hostDrop(conn.peer);
+      else if (d.t === "retry-call" && host.currentId === conn.peer) placeCall(conn.peer);
+    });
     conn.on("close", function(){ hostDrop(conn.peer); });
     conn.on("error", function(){ hostDrop(conn.peer); });
+  }
+  // Re-placing the call re-uses the SAME admitted patient — it's how a
+  // patient whose video failed to connect (their own watchdog asked for
+  // this over the still-open data channel) gets another shot without being
+  // sent back to the end of the queue.
+  function placeCall(id){
+    var e = host.clients[id]; if (!e) return;
+    try { host.currentCall && host.currentCall.close(); } catch (x) {}
+    var call = host.peer.call(id, host.stream || new MediaStream());
+    host.currentCall = call;
+    if (call){
+      call.on("stream", function(rs){ host.remoteStream = rs; render(); });
+      call.on("error", function(){});
+    }
   }
   function pump(){
     if (!host || !host.ready || host.stream === undefined) return;
@@ -281,12 +305,7 @@
     if (!e){ return pump(); }
     host.currentId = e.id; host.currentName = e.name; host.notes = []; host.callStart = Date.now();
     try { e.conn.send({ t: "admit" }); } catch (x) {}
-    var call = host.peer.call(e.id, host.stream || new MediaStream());
-    host.currentCall = call;
-    if (call){
-      call.on("stream", function(rs){ host.remoteStream = rs; render(); });
-      call.on("error", function(){});
-    }
+    placeCall(e.id);
     sendPositions(); render();
   }
   function sendPositions(){
@@ -338,21 +357,48 @@
       peer: null, conn: null, currentCall: null,
       stream: undefined, muted: false, camOff: false, remoteStream: null,
       phase: "connecting", pos: 0, practitioner: { name: "", title: "" },
-      notes: [], finalNotes: null, callStart: 0, lastDuration: 0, endReason: "", retry: 0
+      notes: [], finalNotes: null, callStart: 0, lastDuration: 0, endReason: "",
+      connectTries: 0, joinTries: 0, slow: false, joinSlow: false
     };
     S.screen = "patient"; render();
     getMedia().then(function(s){ pt.stream = s; applyToggles(); connectPatient(); render(); });
   }
+  function clearPtTimers(){
+    if (!pt) return;
+    clearTimeout(pt._connSlow); clearTimeout(pt._connGiveup);
+    clearTimeout(pt._joinSlow); clearTimeout(pt._joinGiveup);
+    clearTimeout(pt._t);
+  }
   function connectPatient(){
+    pt.connectTries++;
+    pt.slow = false;
+    clearTimeout(pt._connSlow); clearTimeout(pt._connGiveup);
+    // A stuck ICE negotiation often never fires an error event at all — it
+    // just never opens. A plain timer is the only reliable way to notice.
+    pt._connSlow = setTimeout(function(){ if (pt && pt.phase === "connecting"){ pt.slow = true; render(); } }, 5000);
+    pt._connGiveup = setTimeout(function(){
+      if (!pt || pt.phase !== "connecting") return;
+      try { pt.peer && pt.peer.destroy(); } catch (x) {}
+      if (pt.connectTries <= MAX_CONNECT_RETRIES) connectPatient();
+      else { pt.phase = "connect-failed"; render(); }
+    }, CONNECT_TIMEOUT_MS);
+
     var p = new Peer({ config: ICE, debug: 1 });
     pt.peer = p;
     p.on("open", function(){
-      var conn = p.connect(HOST_ID, { metadata: { name: S.name, seek: S.seek }, reliable: true });
+      var conn;
+      try { conn = p.connect(HOST_ID, { metadata: { name: S.name, seek: S.seek }, reliable: true }); }
+      catch (x) { return; }
       pt.conn = conn;
-      conn.on("open", function(){ if (pt.phase === "connecting") pt.phase = "waiting"; render(); });
+      conn.on("open", function(){
+        clearTimeout(pt._connSlow); clearTimeout(pt._connGiveup);
+        if (pt.phase === "connecting"){ pt.phase = "waiting"; pt.connectTries = 0; pt.slow = false; }
+        render();
+      });
       conn.on("data", ptOnData);
       conn.on("close", function(){
         if (pt.phase !== "ended"){
+          clearPtTimers();
           pt.finalNotes = pt.finalNotes || pt.notes.slice();
           pt.endReason = pt.endReason || "The connection to the room closed.";
           pt.phase = "ended"; render();
@@ -364,6 +410,7 @@
       pt.currentCall = call;
       call.answer(pt.stream || new MediaStream());
       call.on("stream", function(rs){
+        clearTimeout(pt._joinSlow); clearTimeout(pt._joinGiveup);
         pt.remoteStream = rs; if (!pt.callStart) pt.callStart = Date.now();
         pt.phase = "live"; render();
       });
@@ -374,23 +421,48 @@
     });
     p.on("error", function(e){
       if (e && e.type === "peer-unavailable"){
+        clearTimeout(pt._connSlow); clearTimeout(pt._connGiveup);
         pt.phase = "no-host"; render();
         clearTimeout(pt._t);
         pt._t = setTimeout(function(){ if (pt && pt.phase === "no-host") rejoinPatient(); }, 5000);
       } else if (e && (e.type === "network" || e.type === "server-error")){
-        if (pt.phase !== "live"){ pt.phase = "no-host"; render(); }
+        if (pt.phase !== "live" && pt.phase !== "waiting" && pt.phase !== "joining"){ pt.phase = "no-host"; render(); }
       } else {
         console.warn("[patient]", e && e.type, e);
       }
     });
   }
+  // After being admitted, the video call is a SEPARATE WebRTC connection from
+  // the (already-open) data channel — it can fail on its own even though
+  // everything up to here worked. This watchdog notices and asks the
+  // practitioner to re-place the call over that still-open data channel,
+  // without either side having to restart from scratch.
+  function startJoinWatchdog(){
+    pt.joinTries++;
+    pt.joinSlow = false;
+    clearTimeout(pt._joinSlow); clearTimeout(pt._joinGiveup);
+    pt._joinSlow = setTimeout(function(){ if (pt && pt.phase === "joining"){ pt.joinSlow = true; render(); } }, 5000);
+    pt._joinGiveup = setTimeout(function(){
+      if (!pt || pt.phase !== "joining") return;
+      if (pt.joinTries <= MAX_JOIN_RETRIES){
+        try { pt.conn && pt.conn.open && pt.conn.send({ t: "retry-call" }); } catch (x) {}
+        startJoinWatchdog();
+      } else {
+        pt.phase = "join-failed"; render();
+        try { pt.conn && pt.conn.open && pt.conn.send({ t: "bye" }); } catch (x) {}
+      }
+    }, JOIN_TIMEOUT_MS);
+  }
   function ptOnData(d){
     if (!d) return;
     if (d.t === "hello"){ pt.practitioner = { name: d.name || "", title: d.title || "" }; render(); }
     else if (d.t === "pos"){ pt.pos = d.pos; if (pt.phase === "waiting") render(); }
-    else if (d.t === "admit"){ if (pt.phase === "waiting" || pt.phase === "connecting"){ pt.phase = "connecting"; render(); } }
+    else if (d.t === "admit"){
+      if (pt.phase === "waiting"){ pt.phase = "joining"; pt.joinTries = 0; startJoinWatchdog(); render(); }
+    }
     else if (d.t === "note"){ pt.notes.push({ at: d.at, text: d.text }); render(); }
     else if (d.t === "end"){
+      clearPtTimers();
       pt.finalNotes = ((d.notes && d.notes.length) ? d.notes : pt.notes).slice();
       pt.lastDuration = d.duration || (pt.callStart ? Date.now() - pt.callStart : 0);
       pt.endReason = "The practitioner ended the call.";
@@ -399,6 +471,7 @@
     }
   }
   function ptHangUp(){
+    clearPtTimers();
     try { pt.conn && pt.conn.open && pt.conn.send({ t: "bye" }); } catch (x) {}
     try { pt.currentCall && pt.currentCall.close(); } catch (x) {}
     pt.lastDuration = pt.callStart ? Date.now() - pt.callStart : 0;
@@ -407,12 +480,14 @@
     pt.phase = "ended"; render();
   }
   function rejoinPatient(){
+    clearPtTimers();
     try { pt && pt.peer && pt.peer.destroy(); } catch (x) {}
     startPatient();
   }
 
   // ---- teardown / leave ------------------------------------------------
   function leaveAll(){
+    clearPtTimers();
     try { host && host.peer && host.peer.destroy(); } catch (x) {}
     try { pt && pt.peer && pt.peer.destroy(); } catch (x) {}
     host = null; pt = null;
@@ -771,7 +846,33 @@
       return navBar(right) + centered(
         '<div class="card-kicker">Connecting</div>' +
         '<h2 style="margin:0">Reaching the room…</h2>' +
-        '<p class="card-body" style="margin:0">Setting up your camera and the secure connection.</p>');
+        '<p class="card-body" style="margin:0">Setting up your camera and the secure connection.' +
+          (pt.slow ? ' This is taking longer than usual on your network — still trying…' : '') + '</p>');
+    }
+    if (pt.phase === "connect-failed"){
+      return navBar(right) + centered(
+        '<div class="card-kicker">Couldn’t connect</div>' +
+        '<h2 style="margin:0">We couldn’t reach the room</h2>' +
+        '<p class="card-body" style="margin:0">This is usually a restrictive Wi-Fi, firewall, or VPN blocking the connection. Try switching to mobile data or a different network, then try again.</p>' +
+        '<div style="display:flex;gap:var(--space-3);flex-wrap:wrap;margin-top:var(--space-2)">' +
+          '<button class="btn btn-primary" style="min-height:44px" data-act="pt-rejoin">Try again</button>' +
+          '<button class="btn btn-secondary" style="min-height:44px" data-act="leave">Leave</button></div>');
+    }
+    if (pt.phase === "joining"){
+      return navBar(right) + centered(
+        '<div class="card-kicker">Almost there</div>' +
+        '<h2 style="margin:0">Connecting your video…</h2>' +
+        '<p class="card-body" style="margin:0">' + esc(fn) + ' has admitted you — setting up the call.' +
+          (pt.joinSlow ? ' Still trying — this can take longer on some networks.' : '') + '</p>');
+    }
+    if (pt.phase === "join-failed"){
+      return navBar(right) + centered(
+        '<div class="card-kicker">Video didn’t connect</div>' +
+        '<h2 style="margin:0">We couldn’t set up the call</h2>' +
+        '<p class="card-body" style="margin:0">This is usually a restrictive network on one side. Try switching to mobile data or a different network, then try again — you’ll rejoin the queue.</p>' +
+        '<div style="display:flex;gap:var(--space-3);flex-wrap:wrap;margin-top:var(--space-2)">' +
+          '<button class="btn btn-primary" style="min-height:44px" data-act="pt-rejoin">Try again</button>' +
+          '<button class="btn btn-secondary" style="min-height:44px" data-act="leave">Leave</button></div>');
     }
     if (pt.phase === "no-host"){
       return navBar(right) + centered(
