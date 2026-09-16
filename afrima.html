@@ -261,10 +261,30 @@
   var PROFS = ["General practitioner", "Nutritionist", "Therapist / counsellor", "Paediatrician"];
   var SEEK_OPTIONS = ["Any available practitioner"].concat(PROFS);
   var S = { screen: "landing", role: "patient", name: "", profession: "General practitioner",
-            title: "General practitioner", langs: "English, Swahili", seek: SEEK_OPTIONS[0], err: "", toast: "" };
+            title: "General practitioner", langs: "English, Swahili", seek: SEEK_OPTIONS[0], err: "", toast: "",
+            demo: false };
   var host = null;   // practitioner runtime
   var pt = null;     // patient runtime
   var noteDraft = "";
+
+  // ---- demo mode: a local, network-free stand-in for the other side, so
+  // the UI can be built and reviewed without two devices, PeerJS or TURN ----
+  var DEMO_PATIENTS = [
+    { name: "Aisha Karanja", seek: "Nutritionist", reason: "Follow-up on meal plan" },
+    { name: "Brian Otieno", seek: "General practitioner", reason: "Persistent cough" },
+    { name: "Grace Wanjiru", seek: "Any available practitioner", reason: "First visit" }
+  ];
+  var DEMO_HOST_NOTES = [
+    "Thanks for sharing that — noted.",
+    "Let's keep an eye on this over the next week.",
+    "I'll follow up with a summary once we wrap up."
+  ];
+  var DEMO_PRACTITIONER = { name: "Dr. Amina Wekesa", title: "General practitioner" };
+  var DEMO_PATIENT_NOTES = [
+    "Sleeping about 6–7 hours a night, some improvement.",
+    "Recommend cutting back on caffeine after 3pm.",
+    "Let's follow up again in two weeks if symptoms persist."
+  ];
 
   // ============================ HOST ===================================
   function startHost(){
@@ -277,6 +297,57 @@
     S.screen = "host"; render();
     getMedia().then(function(s){ host.stream = s; applyToggles(); pump(); render(); });
     makeHostPeer();
+  }
+  function startDemoHost(){
+    host = {
+      peer: null, ready: true, err: "", tries: 0, demo: true,
+      stream: undefined, muted: false, camOff: false, onBreak: false,
+      clients: {}, queue: [], currentId: null, currentName: "", currentCall: null,
+      remoteStream: null, notes: [], callStart: 0
+    };
+    S.screen = "host"; render();
+    getMedia().then(function(s){ host.stream = s; applyToggles(); render(); });
+    scheduleDemoArrival(3000);
+  }
+  function scheduleDemoArrival(delay){
+    if (!host) return;
+    clearTimeout(host._demoT);
+    host._demoT = setTimeout(function(){
+      if (!host || !host.demo) return;
+      if (host.onBreak || host.currentId){ scheduleDemoArrival(2000); return; }
+      var p = DEMO_PATIENTS[Math.floor(Math.random() * DEMO_PATIENTS.length)];
+      var id = "demo-" + Date.now();
+      host.clients[id] = { id: id, name: p.name, seek: p.seek, conn: { open: false, send: function(){} }, at: Date.now() };
+      host.queue.push(id);
+      render();
+      clearTimeout(host._demoAdmitT);
+      host._demoAdmitT = setTimeout(demoAdmitNext, 1600);
+    }, delay);
+  }
+  function demoAdmitNext(){
+    if (!host || !host.demo || host.onBreak || host.currentId) return;
+    var id = host.queue.shift();
+    var e = id && host.clients[id];
+    if (!e) return;
+    host.currentId = e.id; host.currentName = e.name; host.notes = []; host.callStart = Date.now();
+    render();
+    scheduleDemoHostNote();
+  }
+  function scheduleDemoHostNote(){
+    if (!host) return;
+    clearTimeout(host._demoNoteT);
+    if (!host.demo || !host.currentId) return;
+    host._demoNoteT = setTimeout(function(){
+      if (!host || !host.currentId || host.notes.length >= DEMO_HOST_NOTES.length) return;
+      var at = mmss(Math.floor((Date.now() - host.callStart) / 1000));
+      host.notes.push({ at: at, text: DEMO_HOST_NOTES[host.notes.length] });
+      render();
+      scheduleDemoHostNote();
+    }, 5000);
+  }
+  function clearHostDemoTimers(){
+    if (!host) return;
+    clearTimeout(host._demoT); clearTimeout(host._demoAdmitT); clearTimeout(host._demoNoteT);
   }
   function makeHostPeer(){
     getIceServers().then(function(iceServers){
@@ -377,7 +448,10 @@
     try { host.currentCall && host.currentCall.close(); } catch (x) {}
     host.currentId = null; host.currentName = ""; host.currentCall = null; host.remoteStream = null; host.notes = [];
     render();
-    setTimeout(function(){ pump(); render(); }, 500);
+    setTimeout(function(){
+      if (host && host.demo) scheduleDemoArrival(2500); else pump();
+      render();
+    }, 500);
   }
   function hostSendNote(text){
     if (!host || !host.currentId) return;
@@ -389,7 +463,9 @@
   }
   function hostSetBreak(on){
     host.onBreak = on;
-    if (on) hostEndConsult(); else pump();
+    if (on) hostEndConsult();
+    else if (host.demo) scheduleDemoArrival(1500);
+    else pump();
     render();
   }
 
@@ -405,8 +481,39 @@
     S.screen = "patient"; render();
     getMedia().then(function(s){ pt.stream = s; applyToggles(); connectPatient(); render(); });
   }
+  function startDemoPatient(){
+    pt = {
+      peer: null, conn: null, currentCall: null, demo: true,
+      stream: undefined, muted: false, camOff: false, remoteStream: null,
+      phase: "waiting", pos: 1, practitioner: { name: DEMO_PRACTITIONER.name, title: DEMO_PRACTITIONER.title },
+      notes: [], finalNotes: null, callStart: 0, lastDuration: 0, endReason: "",
+      connectTries: 0, joinTries: 0, slow: false, joinSlow: false
+    };
+    S.screen = "patient"; render();
+    getMedia().then(function(s){ pt.stream = s; applyToggles(); render(); });
+    clearTimeout(pt._demoAdmitT);
+    pt._demoAdmitT = setTimeout(function(){
+      if (!pt || !pt.demo || pt.phase !== "waiting") return;
+      pt.phase = "live"; pt.callStart = Date.now();
+      render();
+      scheduleDemoPatientNote();
+    }, 4000);
+  }
+  function scheduleDemoPatientNote(){
+    if (!pt) return;
+    clearTimeout(pt._demoNoteT);
+    if (!pt.demo || pt.phase !== "live") return;
+    pt._demoNoteT = setTimeout(function(){
+      if (!pt || pt.phase !== "live" || pt.notes.length >= DEMO_PATIENT_NOTES.length) return;
+      var at = mmss(Math.floor((Date.now() - pt.callStart) / 1000));
+      pt.notes.push({ at: at, text: DEMO_PATIENT_NOTES[pt.notes.length] });
+      render();
+      scheduleDemoPatientNote();
+    }, 5000);
+  }
   function clearPtTimers(){
     if (!pt) return;
+    clearTimeout(pt._demoAdmitT); clearTimeout(pt._demoNoteT);
     clearTimeout(pt._connSlow); clearTimeout(pt._connGiveup);
     clearTimeout(pt._joinSlow); clearTimeout(pt._joinGiveup);
     clearTimeout(pt._t);
@@ -532,15 +639,16 @@
   function rejoinPatient(){
     clearPtTimers();
     try { pt && pt.peer && pt.peer.destroy(); } catch (x) {}
-    startPatient();
+    if (S.demo) startDemoPatient(); else startPatient();
   }
 
   // ---- teardown / leave ------------------------------------------------
   function leaveAll(){
     clearPtTimers();
+    clearHostDemoTimers();
     try { host && host.peer && host.peer.destroy(); } catch (x) {}
     try { pt && pt.peer && pt.peer.destroy(); } catch (x) {}
-    host = null; pt = null;
+    host = null; pt = null; S.demo = false;
     S.screen = "landing"; render();
   }
   window.addEventListener("pagehide", function(){
@@ -560,14 +668,16 @@
   document.addEventListener("click", function(e){
     var t = e.target.closest("[data-act]"); if (!t) return;
     var a = t.dataset.act;
-    if (a === "to-signin"){ S.role = "patient"; S.err = ""; S.screen = "signin"; render(); }
-    else if (a === "to-signin-doctor"){ S.role = "doctor"; S.err = ""; S.screen = "signin"; render(); }
+    if (a === "to-signin"){ S.role = "patient"; S.demo = false; S.err = ""; S.screen = "signin"; render(); }
+    else if (a === "to-signin-doctor"){ S.role = "doctor"; S.demo = false; S.err = ""; S.screen = "signin"; render(); }
+    else if (a === "to-signin-demo"){ S.demo = true; S.err = ""; S.screen = "signin"; render(); }
     else if (a === "to-landing"){ S.err = ""; S.screen = "landing"; render(); }
     else if (a === "start" || a === "enter"){
       if (!S.name.trim()){ S.err = "Enter your name first."; return render(); }
       S.err = "";
       S.title = (S.role === "doctor") ? S.profession : S.title;
-      if (S.role === "doctor") startHost(); else startPatient();
+      if (S.role === "doctor"){ if (S.demo) startDemoHost(); else startHost(); }
+      else { if (S.demo) startDemoPatient(); else startPatient(); }
     }
     else if (a === "leave") leaveAll();
     else if (a === "copy") copyLink();
@@ -617,6 +727,7 @@
   function navBar(right){
     return '<div class="wrap nav"><span class="nav-brand">Openroom</span>' +
       '<div style="display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap">' +
+        (S.demo ? '<span class="tag" style="background:var(--color-accent-2-700);color:#fff">Demo — simulated</span>' : '') +
         (ROOM !== "main" ? '<span class="tag tag-neutral">room · ' + esc(ROOM) + '</span>' : '') +
         (right || '') +
       '</div></div>';
@@ -646,8 +757,11 @@
     var o = host || pt;
     var noCam = mediaErr || !o.stream;
     var camOff = o.camOff;
+    var hasRemote = !!(o.remoteStream);
     return '<div style="position:relative;border-radius:32px;overflow:hidden;background:var(--color-neutral-800);aspect-ratio:16/10;box-shadow:var(--shadow-lg)">' +
-      '<video class="js-remote" autoplay playsinline></video>' +
+      (hasRemote
+        ? '<video class="js-remote" autoplay playsinline></video>'
+        : '<div class="slot slot-video" style="font-size:52px">' + esc(initials(bigName)) + '</div>') +
       '<div class="stage-label" style="left:var(--space-4);top:var(--space-4);display:flex;gap:var(--space-2);align-items:center">' +
         '<span class="tag js-timer" style="background:var(--color-neutral-900);color:var(--color-neutral-200)">0:00</span>' +
         '<span class="tag" style="background:var(--color-accent-700);color:var(--color-accent-100)">Live</span></div>' +
@@ -699,6 +813,8 @@
           '<span class="tag tag-neutral">Therapists</span>' +
           '<span class="tag tag-neutral">Paediatricians</span>' +
         '</div>' +
+        '<p style="margin-top:var(--space-4)"><button class="btn btn-ghost" style="padding-inline:0" data-act="to-signin-demo">' +
+          'Just want to see it? Try the demo →</button></p>' +
       '</div>' +
       '<div style="position:relative;padding-bottom:var(--space-8);padding-left:var(--space-4)">' +
         '<div style="border-radius:999px 999px 40px 40px;overflow:hidden;aspect-ratio:4/5;box-shadow:var(--shadow-lg);background:var(--color-accent-200)">' +
@@ -782,10 +898,15 @@
         '<div class="field"><label>Your name</label>' +
           '<input class="input" data-field="name" value="' + esc(S.name) + '" placeholder="Full name" autocomplete="name" /></div>' +
         docBlock + patBlock +
+        (S.demo
+          ? '<p class="card-body" style="margin:0;background:var(--color-accent-2-100);padding:var(--space-2) var(--space-3);border-radius:10px">' +
+            'Demo mode — the other side is simulated locally. No second device, camera or network needed on their end.</p>'
+          : '') +
         (S.err ? '<p style="margin:0;font-size:13px;color:#b3261e">' + esc(S.err) + '</p>' : '') +
-        '<button class="btn btn-primary btn-block" style="min-height:44px"' + ((LIB_OK && SECURE) ? '' : ' disabled') + ' data-act="enter">' +
-          (isDoc ? "Open my room" : "See who is in") + '</button>' +
-        '<p class="text-muted" style="font-size:12px;margin:0">Peer-to-peer video — no calls are recorded or stored.</p>' +
+        '<button class="btn btn-primary btn-block" style="min-height:44px"' + (((S.demo || LIB_OK) && SECURE) ? '' : ' disabled') + ' data-act="enter">' +
+          (S.demo ? (isDoc ? "Start the demo (practitioner)" : "Start the demo (patient)") : (isDoc ? "Open my room" : "See who is in")) + '</button>' +
+        '<p class="text-muted" style="font-size:12px;margin:0">' +
+          (S.demo ? "Nothing here is recorded or sent anywhere — it's just your own camera." : "Peer-to-peer video — no calls are recorded or stored.") + '</p>' +
       '</div>' +
     '</div>';
   }
@@ -874,7 +995,10 @@
       '<div style="display:flex;flex-wrap:wrap;gap:var(--space-4);align-items:flex-start">' +
         '<div style="flex:1 1 480px;min-width:0;display:flex;flex-direction:column;gap:var(--space-3)">' + stage + notesPanel + '</div>' +
         '<div style="flex:1 1 280px;min-width:0;display:flex;flex-direction:column;gap:var(--space-3)">' +
-          shareRow() +
+          (host.demo
+            ? '<div class="card" style="gap:var(--space-2)"><div class="card-kicker">Demo mode</div>' +
+              '<p class="card-body" style="margin:0">This isn’t a real room — the link below won’t connect anyone. Leave the demo to open a real one.</p></div>'
+            : shareRow()) +
           '<div class="card" style="padding:var(--space-4);gap:var(--space-3)">' +
             '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:var(--space-2)">' +
               '<div class="card-title" style="font-size:15px">Waiting</div>' +
