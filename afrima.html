@@ -171,12 +171,14 @@
   // Two strangers on two different networks essentially never connect on
   // STUN alone — one of them is behind a NAT/firewall that blocks a direct
   // path often enough that a TURN relay is what actually makes "different
-  // locations" work, not an edge case. The public shared relay below is
-  // free but can be slow/overloaded since anyone can use it; for a private,
-  // reliable relay, sign up free at https://www.metered.ca (no card needed),
-  // create a TURN app, and paste its subdomain + API key below — everything
-  // else here keeps working as a fallback either way.
-  var TURN_PROVIDER = { app: "", key: "" };   // e.g. app:"openroom", key:"xxxxxxxxxxxx"
+  // locations" work, not an edge case. STATIC_ICE_SERVERS below (a public,
+  // shared relay) is the fallback; this is our own private Metered.live
+  // relay, used first. Its domain and key are public in the page source by
+  // design — Metered's credentials endpoint is meant to be called from the
+  // browser — but that does mean anyone who inspects the source could draw
+  // on the account's quota, so rotate the key from the Metered dashboard if
+  // that ever becomes a problem.
+  var TURN_PROVIDER = { domain: "afrima.metered.live", key: "4DoOeTEPK_F3uaasTeh40-J0jE43uSnMUA9CiPiIjC23atIa" };
 
   var STATIC_ICE_SERVERS = [
     { urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302", "stun:stun.cloudflare.com:3478"] },
@@ -193,11 +195,11 @@
   var iceServersPromise = null;
   function getIceServers(){
     if (iceServersPromise) return iceServersPromise;
-    if (!TURN_PROVIDER.app || !TURN_PROVIDER.key){
+    if (!TURN_PROVIDER.domain || !TURN_PROVIDER.key){
       iceServersPromise = Promise.resolve(STATIC_ICE_SERVERS);
       return iceServersPromise;
     }
-    var url = "https://" + TURN_PROVIDER.app + ".metered.ca/api/v1/turn/credentials?apiKey=" + encodeURIComponent(TURN_PROVIDER.key);
+    var url = "https://" + TURN_PROVIDER.domain + "/api/v1/turn/credentials?apiKey=" + encodeURIComponent(TURN_PROVIDER.key);
     iceServersPromise = new Promise(function(resolve){
       var done = false;
       var settle = function(v){ if (!done){ done = true; resolve(v); } };
