@@ -3,12 +3,14 @@
 //
 // Storage: Upstash Redis's plain REST API (one JSON command array per POST),
 // called with the built-in fetch -- no npm dependency, no build step, same
-// "just static files" deploy this project has always been. Vercel's
-// KV/Redis storage integration injects KV_REST_API_URL / KV_REST_API_TOKEN
-// automatically once a database is connected to the project.
+// "just static files" deploy this project has always been. Works with a
+// database from Upstash's own free tier (upstash.com, no card needed) just
+// as well as Vercel's paid KV/Redis marketplace integration -- both hand
+// out the same REST URL + token shape, just under slightly different env
+// var names depending on where you copied them from, so both are accepted.
 
-var KV_URL = process.env.KV_REST_API_URL;
-var KV_TOKEN = process.env.KV_REST_API_TOKEN;
+var KV_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+var KV_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
 
 function kvConfigured() {
   return !!(KV_URL && KV_TOKEN);
