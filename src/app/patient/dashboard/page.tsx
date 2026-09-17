@@ -40,7 +40,7 @@ export default async function PatientDashboard() {
     <div>
       <PageHeading eyebrow="Welcome back" title={profile?.full_name ?? "Patient"} />
 
-      <Card className="p-8 mb-8 bg-gradient-to-br from-accent-50 to-sage-50">
+      <Card className="p-8 mb-8 bg-gradient-to-br from-accent-50 to-accent-100">
         <h6 className="text-xs font-bold uppercase tracking-wide text-accent-700 mb-2">
           Need to talk to someone?
         </h6>

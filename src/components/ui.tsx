@@ -62,10 +62,14 @@ export function LinkButton({
   );
 }
 
+// Same green family throughout (no second hue) -- states are told apart by
+// how far along the accent scale they sit: light = calm/waiting, dark =
+// active/urgent. Only danger keeps its own color, deliberately (see
+// globals.css).
 const practitionerStatusStyle: Record<PractitionerStatus, string> = {
-  AVAILABLE: "bg-sage-100 text-sage-800",
+  AVAILABLE: "bg-accent-100 text-accent-800",
   OFFLINE: "bg-neutral-200 text-neutral-700",
-  IN_CALL: "bg-accent-100 text-accent-800",
+  IN_CALL: "bg-accent-800 text-white",
   SUSPENDED: "bg-danger-bg text-danger",
 };
 
@@ -75,8 +79,8 @@ export function PractitionerStatusPill({ status }: { status: PractitionerStatus 
 
 const consultationStatusStyle: Record<ConsultationStatus, string> = {
   WAITING: "bg-accent-100 text-accent-800",
-  CLAIMED: "bg-sage-100 text-sage-800",
-  IN_CALL: "bg-accent-100 text-accent-800",
+  CLAIMED: "bg-accent-200 text-accent-900",
+  IN_CALL: "bg-accent-800 text-white",
   COMPLETED: "bg-neutral-200 text-neutral-700",
   CANCELLED: "bg-danger-bg text-danger",
   ABANDONED: "bg-danger-bg text-danger",

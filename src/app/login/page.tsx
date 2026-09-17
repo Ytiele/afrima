@@ -106,6 +106,7 @@ export default function LoginPage() {
           alt=""
           fill
           priority
+          quality={90}
           sizes="50vw"
           className="object-cover object-center -z-20"
         />

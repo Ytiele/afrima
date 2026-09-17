@@ -1,19 +1,21 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import type { Prescription, PrescriptionItem } from "@/lib/types";
 
+// Colors match the app's brand palette (globals.css): brand black, the
+// CTA green, and a neutral gray derived from the same green-black family.
 const styles = StyleSheet.create({
-  page: { padding: 40, fontSize: 11, fontFamily: "Helvetica", color: "#201e1d" },
-  brand: { fontSize: 18, marginBottom: 2, color: "#89491f" },
+  page: { padding: 40, fontSize: 11, fontFamily: "Helvetica", color: "#020202" },
+  brand: { fontSize: 18, marginBottom: 2, color: "#04471c" },
   title: { fontSize: 14, marginBottom: 20, letterSpacing: 1 },
   row: { flexDirection: "row", marginBottom: 14, gap: 24 },
   col: { flexDirection: "column" },
-  label: { fontSize: 9, color: "#5b5447", textTransform: "uppercase", marginBottom: 2 },
+  label: { fontSize: 9, color: "#4c574f", textTransform: "uppercase", marginBottom: 2 },
   value: { fontSize: 12 },
-  sectionTitle: { fontSize: 10, color: "#5b5447", textTransform: "uppercase", marginTop: 16, marginBottom: 8 },
-  item: { marginBottom: 10, paddingBottom: 10, borderBottom: "1 solid #e3dccb" },
+  sectionTitle: { fontSize: 10, color: "#4c574f", textTransform: "uppercase", marginTop: 16, marginBottom: 8 },
+  item: { marginBottom: 10, paddingBottom: 10, borderBottom: "1 solid #d0d8d3" },
   itemTitle: { fontSize: 12, fontWeight: 700, marginBottom: 3 },
-  itemMeta: { fontSize: 10, color: "#403b31" },
-  footer: { marginTop: 40, paddingTop: 12, borderTop: "1 solid #e3dccb" },
+  itemMeta: { fontSize: 10, color: "#38413b" },
+  footer: { marginTop: 40, paddingTop: 12, borderTop: "1 solid #d0d8d3" },
 });
 
 export function PrescriptionPdf({

@@ -1,46 +1,44 @@
 @import "tailwindcss";
 
 :root {
-  --color-bg: #fffaf3;
-  --color-text: #201e1d;
+  --color-bg: #ffffff;
+  --color-text: #020202;
 
-  --color-accent-50: #fdf3ea;
-  --color-accent-100: #f7e7d9;
-  --color-accent-200: #eccbae;
-  --color-accent-300: #e0ac85;
-  --color-accent-400: #d38f5d;
-  --color-accent-500: #c67139;
-  --color-accent-600: #a95d2c;
-  --color-accent-700: #89491f;
-  --color-accent-800: #693819;
-  --color-accent-900: #4a2712;
+  /* Every shade below is derived from the three Afrimerchants Ltd brand
+     colors (#020202 / #0d2818 / #04471c) plus white -- no other hue is
+     used anywhere in the app. accent-500 IS the brand CTA green; the rest
+     of the scale tints it toward white (light end) or toward brand-black
+     (dark end). neutral-* is the same treatment desaturated further, for
+     borders/secondary text that need to read as "gray" rather than green. */
+  --color-accent-50: #eaf3ee;
+  --color-accent-100: #d2e6db;
+  --color-accent-200: #a6ceb8;
+  --color-accent-300: #79b494;
+  --color-accent-400: #4c9c70;
+  --color-accent-500: #04471c;
+  --color-accent-600: #033c17;
+  --color-accent-700: #033012;
+  --color-accent-800: #02240d;
+  --color-accent-900: #011608;
 
-  --color-sage-50: #f2f4ee;
-  --color-sage-100: #e9eddf;
-  --color-sage-200: #d5ddc2;
-  --color-sage-300: #bdc9a1;
-  --color-sage-400: #a3b381;
-  --color-sage-500: #7a8a5e;
-  --color-sage-600: #66764e;
-  --color-sage-700: #525f3f;
-  --color-sage-800: #3f4a31;
-  --color-sage-900: #2d3423;
+  --color-neutral-50: #f4f6f5;
+  --color-neutral-100: #e7ebe8;
+  --color-neutral-200: #d0d8d3;
+  --color-neutral-300: #adbab2;
+  --color-neutral-400: #87988d;
+  --color-neutral-500: #647268;
+  --color-neutral-600: #4c574f;
+  --color-neutral-700: #38413b;
+  --color-neutral-800: #242b26;
+  --color-neutral-900: #131713;
 
-  --color-neutral-50: #faf7f2;
-  --color-neutral-100: #efe8da;
-  --color-neutral-200: #e3dccb;
-  --color-neutral-300: #cec6b2;
-  --color-neutral-400: #a9a08b;
-  --color-neutral-500: #7d7565;
-  --color-neutral-600: #5b5447;
-  --color-neutral-700: #403b31;
-  --color-neutral-800: #2b2823;
-  --color-neutral-900: #1c1a16;
-
+  /* Kept as the one deliberate exception: red is the universal signal for
+     errors/destructive actions (suspended, cancelled, validation errors),
+     and a brand-green "danger" state would actively hurt usability. */
   --color-danger: #b3261e;
   --color-danger-bg: #fdeceb;
 
-  /* Afrimerchants Ltd brand palette — used on the public homepage */
+  /* Afrimerchants Ltd brand colors, exactly as given. */
   --color-brand-black: #020202;
   --color-brand-green-900: #0d2818;
   --color-brand-cta: #04471c;
@@ -60,16 +58,6 @@
   --color-accent-700: var(--color-accent-700);
   --color-accent-800: var(--color-accent-800);
   --color-accent-900: var(--color-accent-900);
-  --color-sage-50: var(--color-sage-50);
-  --color-sage-100: var(--color-sage-100);
-  --color-sage-200: var(--color-sage-200);
-  --color-sage-300: var(--color-sage-300);
-  --color-sage-400: var(--color-sage-400);
-  --color-sage-500: var(--color-sage-500);
-  --color-sage-600: var(--color-sage-600);
-  --color-sage-700: var(--color-sage-700);
-  --color-sage-800: var(--color-sage-800);
-  --color-sage-900: var(--color-sage-900);
   --color-neutral-50: var(--color-neutral-50);
   --color-neutral-100: var(--color-neutral-100);
   --color-neutral-200: var(--color-neutral-200);

@@ -114,6 +114,7 @@ export function QuickStartHome() {
           alt=""
           fill
           priority
+          quality={90}
           sizes="100vw"
           className="object-cover object-center -z-20"
         />
@@ -126,7 +127,7 @@ export function QuickStartHome() {
         />
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center">
           <div>
-            <h6 className="text-xs font-bold uppercase tracking-wide mb-3 text-[#5fbf7f]">
+            <h6 className="text-xs font-bold uppercase tracking-wide mb-3 text-accent-300">
               Care, the moment you need it
             </h6>
             <h1 className="text-4xl sm:text-5xl mb-4 max-w-md text-white">
@@ -151,6 +152,7 @@ export function QuickStartHome() {
               src="/video-call-woman.jpg"
               alt="A practitioner speaking with a patient over video call"
               fill
+              quality={90}
               sizes="(min-width: 768px) 40vw, 100vw"
               className="object-cover"
             />
@@ -211,6 +213,7 @@ export function QuickStartHome() {
               src="/video-call-man.jpg"
               alt="A practitioner joining a secure video consultation from their desk"
               fill
+              quality={90}
               sizes="(min-width: 768px) 40vw, 100vw"
               className="object-cover"
             />
@@ -228,13 +231,7 @@ export function QuickStartHome() {
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {SERVICES.map((s) => (
-              <Card key={s.title} className="p-6">
-                <div className="h-11 w-11 rounded-full mb-4 bg-brand-cta/10 flex items-center justify-center">
-                  <s.icon className="h-5 w-5 text-brand-cta" />
-                </div>
-                <h3 className="text-lg mb-2">{s.title}</h3>
-                <p className="text-sm text-neutral-600">{s.description}</p>
-              </Card>
+              <ServiceCard key={s.title} {...s} />
             ))}
           </div>
         </div>
@@ -255,6 +252,49 @@ export function QuickStartHome() {
         </div>
       </footer>
     </main>
+  );
+}
+
+const SNIPPET_LENGTH = 100;
+
+function truncateToWord(text: string, max: number) {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max);
+  const lastSpace = cut.lastIndexOf(" ");
+  return (lastSpace > 0 ? cut.slice(0, lastSpace) : cut) + "…";
+}
+
+function ServiceCard({
+  title,
+  description,
+  icon: Icon,
+}: {
+  title: string;
+  description: string;
+  icon: LucideIcon;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const needsTruncation = description.length > SNIPPET_LENGTH;
+
+  return (
+    <Card className="p-6">
+      <div className="h-11 w-11 rounded-full mb-4 bg-brand-cta/10 flex items-center justify-center">
+        <Icon className="h-5 w-5 text-brand-cta" />
+      </div>
+      <h3 className="text-lg mb-2">{title}</h3>
+      <p className="text-sm text-neutral-600">
+        {expanded || !needsTruncation ? description : truncateToWord(description, SNIPPET_LENGTH)}
+      </p>
+      {needsTruncation && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="mt-2 text-sm font-semibold text-brand-cta hover:text-brand-cta-hover"
+        >
+          {expanded ? "Read less" : "Read more"}
+        </button>
+      )}
+    </Card>
   );
 }
 
