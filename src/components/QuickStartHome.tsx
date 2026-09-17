@@ -10,6 +10,7 @@ import { MPESA_ACCOUNT, MPESA_PAYBILL, SPECIALTIES, SPECIALTY_LABELS, type Speci
 import {
   Ambulance,
   Apple,
+  CheckCircle2,
   HeartHandshake,
   Home as HomeIcon,
   Microscope,
@@ -127,6 +128,19 @@ function Reveal({
   );
 }
 
+function Kicker({ children, dark = false }: { children: ReactNode; dark?: boolean }) {
+  return (
+    <span
+      className={`inline-flex items-center gap-2 rounded-full px-3 py-1 mb-4 text-xs font-bold uppercase tracking-wide ${
+        dark ? "bg-white/10 text-accent-300" : "bg-accent-50 text-brand-cta"
+      }`}
+    >
+      <span className="h-1.5 w-1.5 rounded-full bg-current" />
+      {children}
+    </span>
+  );
+}
+
 export function QuickStartHome() {
   return (
     <main className="min-h-screen flex flex-col bg-white">
@@ -163,7 +177,7 @@ export function QuickStartHome() {
         </div>
       </nav>
 
-      <section className="relative isolate px-4 py-16 sm:py-24 overflow-hidden">
+      <section className="relative isolate px-4 py-20 sm:py-28 overflow-hidden">
         <Image
           src="/hero-consult.jpg"
           alt=""
@@ -171,27 +185,31 @@ export function QuickStartHome() {
           priority
           quality={90}
           sizes="100vw"
-          className="object-cover object-center -z-20"
+          className="object-cover object-center -z-30 grayscale"
         />
-        <div
-          className="absolute inset-0 -z-10"
-          style={{
-            background:
-              "linear-gradient(135deg, rgba(2,2,2,0.92), rgba(13,40,24,0.88))",
-          }}
-        />
-        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center">
+        {/* Duotone: a grayscale photo + a solid brand-color layer blended
+            with mix-blend-mode: color reads as a designed, on-brand image
+            treatment instead of a generic stock photo behind a dark wash. */}
+        <div className="absolute inset-0 -z-20 bg-brand-cta" style={{ mixBlendMode: "color" }} />
+        <div className="absolute inset-0 -z-10 bg-brand-black/55" />
+        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
           <Reveal>
-            <h6 className="text-xs font-bold uppercase tracking-wide mb-3 text-accent-300">
-              Care, the moment you need it
-            </h6>
-            <h1 className="text-4xl sm:text-5xl mb-4 max-w-md text-white">
+            <Kicker dark>Care, the moment you need it</Kicker>
+            <h1 className="text-5xl sm:text-6xl mb-5 max-w-lg text-white">
               Someone is always available.
             </h1>
-            <p className="text-base max-w-sm text-neutral-300">
+            <p className="text-lg max-w-md text-neutral-300 mb-6">
               No booking, no account, no appointment slots. Tell us your name and who you&apos;d
               like to see, and you&apos;ll be connected by video call the moment someone&apos;s free.
             </p>
+            <div className="flex flex-wrap gap-x-6 gap-y-3">
+              {["Licensed practitioners", "Confidential & secure", "No app required"].map((t) => (
+                <div key={t} className="flex items-center gap-2 text-sm font-medium text-neutral-200">
+                  <CheckCircle2 className="h-4 w-4 text-accent-300 shrink-0" />
+                  {t}
+                </div>
+              ))}
+            </div>
           </Reveal>
 
           <Reveal delay={150} id="get-started">
@@ -213,7 +231,7 @@ export function QuickStartHome() {
             />
           </Reveal>
           <Reveal delay={150} className="order-1 md:order-2">
-            <h6 className="text-xs font-bold uppercase tracking-wide text-brand-cta mb-3">Who We Are</h6>
+            <Kicker>Who We Are</Kicker>
             <h2 className="text-3xl sm:text-4xl mb-6">Afrimerchants Ltd</h2>
             <p className="text-base text-neutral-700">
               Afrima Digi-Health Ke is a trusted Kenyan digital health company that connects patients
@@ -245,15 +263,13 @@ export function QuickStartHome() {
       <section className="px-4 py-16 sm:py-20 bg-neutral-50">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center">
           <Reveal>
-            <h6 className="text-xs font-bold uppercase tracking-wide text-brand-cta mb-3">
-              Virtual care, real connection
-            </h6>
+            <Kicker>Virtual care, real connection</Kicker>
             <h2 className="text-3xl sm:text-4xl mb-6">Trusted telehealth, wherever you are</h2>
             <div className="flex flex-col gap-6">
               {TRUST_POINTS.map((t, i) => (
                 <Reveal key={t.title} delay={i * 100} className="flex gap-4">
-                  <div className="shrink-0 h-11 w-11 rounded-full bg-brand-cta/10 flex items-center justify-center">
-                    <t.icon className="h-5 w-5 text-brand-cta" />
+                  <div className="shrink-0 h-11 w-11 rounded-full bg-brand-cta flex items-center justify-center">
+                    <t.icon className="h-5 w-5 text-white" />
                   </div>
                   <div>
                     <h3 className="text-base font-semibold mb-1">{t.title}</h3>
@@ -279,9 +295,7 @@ export function QuickStartHome() {
       <section id="services" className="px-4 py-16 sm:py-20 bg-white">
         <div className="max-w-6xl mx-auto">
           <Reveal className="text-center mb-10">
-            <h6 className="text-xs font-bold uppercase tracking-wide text-brand-cta mb-3">
-              What we offer
-            </h6>
+            <Kicker>What we offer</Kicker>
             <h2 className="text-3xl sm:text-4xl">Our Services</h2>
           </Reveal>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -335,8 +349,8 @@ function ServiceCard({
 
   return (
     <Card className="p-6">
-      <div className="h-11 w-11 rounded-full mb-4 bg-brand-cta/10 flex items-center justify-center">
-        <Icon className="h-5 w-5 text-brand-cta" />
+      <div className="h-11 w-11 rounded-full mb-4 bg-brand-cta flex items-center justify-center">
+        <Icon className="h-5 w-5 text-white" />
       </div>
       <h3 className="text-lg mb-2">{title}</h3>
       <p className="text-sm text-neutral-600">
@@ -359,7 +373,8 @@ function GetStartedCard() {
   const [mode, setMode] = useState<Mode>("queue");
 
   return (
-    <Card className="p-6 sm:p-8">
+    <Card className="relative overflow-hidden rounded-3xl border-0 p-6 sm:p-8 shadow-2xl">
+      <div className="absolute top-0 inset-x-0 h-1.5 bg-brand-cta" />
       <div className="flex gap-2 mb-5 text-sm font-semibold">
         <button
           type="button"
