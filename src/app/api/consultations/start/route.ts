@@ -7,7 +7,7 @@ const schema = z.object({
   gender: z.enum(["MALE", "FEMALE", "OTHER"]).nullable().optional(),
   bmi: z.number().positive().nullable().optional(),
   waz: z.number().nullable().optional(),
-  reason: z.string().trim().min(1, "Tell us why you're here").max(2000),
+  reason: z.string().trim().max(2000).optional(),
   referring_facility: z.string().trim().max(300).nullable().optional(),
   specialty: z.enum(["GENERAL_PRACTITIONER", "NUTRITIONIST", "PSYCHOLOGIST"]),
   // Required only the first time we see this anonymous session (there's
@@ -89,7 +89,7 @@ export async function POST(request: Request) {
       patient_id: patient.id,
       status: "WAITING",
       specialty,
-      reason,
+      reason: reason || null,
       referring_facility: referring_facility || null,
       bmi: bmi ?? null,
       waz: waz ?? null,

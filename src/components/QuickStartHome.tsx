@@ -4,14 +4,13 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { Button, Card, Field, inputClass, textareaClass } from "@/components/ui";
+import { Button, Card, Field, inputClass } from "@/components/ui";
 import { SPECIALTIES, SPECIALTY_LABELS, type Specialty } from "@/lib/types";
 
 export function QuickStartHome() {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
   const [specialty, setSpecialty] = useState<Specialty | null>(null);
-  const [reason, setReason] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -38,7 +37,7 @@ export function QuickStartHome() {
       const res = await fetch("/api/consultations/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ full_name: fullName, specialty, reason }),
+        body: JSON.stringify({ full_name: fullName, specialty }),
       });
       const body = await res.json();
       if (!res.ok) {
@@ -105,16 +104,6 @@ export function QuickStartHome() {
                     </button>
                   ))}
                 </div>
-              </Field>
-              <Field label="What would you like help with?">
-                <textarea
-                  className={textareaClass}
-                  rows={3}
-                  required
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  placeholder="A quick line is enough — they'll ask more on the call."
-                />
               </Field>
               {error && <p className="text-sm text-danger">{error}</p>}
               <Button type="submit" disabled={loading} className="w-full">
