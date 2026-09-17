@@ -9,6 +9,10 @@ const schema = z.object({
   waz: z.number().nullable().optional(),
   reason: z.string().trim().min(1, "Tell us why you're here").max(2000),
   referring_facility: z.string().trim().max(300).nullable().optional(),
+  // Only ever used to refresh the on-file name for a returning quick-start
+  // patient who typed it slightly differently this time — never trusted
+  // for anything security-relevant.
+  full_name: z.string().trim().min(1).max(200).optional(),
 });
 
 export async function POST(request: Request) {
@@ -25,7 +29,7 @@ export async function POST(request: Request) {
 
   const { data: patient } = await supabase
     .from("patients")
-    .select("id, age, gender")
+    .select("id, age, gender, full_name")
     .eq("user_id", user.id)
     .single();
   if (!patient) return NextResponse.json({ error: "Patient profile not found" }, { status: 404 });
@@ -42,13 +46,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ consultation: existing });
   }
 
-  const { age, gender, bmi, waz, reason, referring_facility } = parsed.data;
+  const { age, gender, bmi, waz, reason, referring_facility, full_name } = parsed.data;
 
-  // Keep the patient's own on-file age/gender reasonably current.
-  if (age || gender) {
+  // Keep the patient's own on-file details reasonably current.
+  if (age || gender || (full_name && full_name !== patient.full_name)) {
     await supabase
       .from("patients")
-      .update({ age: age ?? patient.age, gender: gender ?? patient.gender })
+      .update({
+        age: age ?? patient.age,
+        gender: gender ?? patient.gender,
+        full_name: full_name || patient.full_name,
+      })
       .eq("id", patient.id);
   }
 

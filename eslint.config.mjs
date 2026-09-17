@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Pre-existing design-reference bundle, not part of this app -- vendored
+    // JS from the original prototype handoff, never built or imported here.
+    "New folder/**",
   ]),
 ]);
 
