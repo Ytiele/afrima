@@ -12,6 +12,9 @@ export const SPECIALTY_LABELS: Record<Specialty, string> = {
   PSYCHOLOGIST: "Psychologist",
 };
 
+export const MPESA_PAYBILL = "303030";
+export const MPESA_ACCOUNT = "4rg8#";
+
 export type ConsultationStatus =
   | "WAITING"
   | "CLAIMED"
@@ -69,6 +72,12 @@ export interface Consultation {
   started_at: string | null;
   ended_at: string | null;
   duration_seconds: number | null;
+  is_referral: boolean;
+  referral_hospital: string | null;
+  referral_doctor_name: string | null;
+  referral_doctor_number: string | null;
+  mpesa_code: string | null;
+  payment_verified: boolean;
   created_at: string;
   updated_at: string;
 }

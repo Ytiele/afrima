@@ -10,9 +10,11 @@ import type { Consultation } from "@/lib/types";
 export function PatientConsultationRoom({
   initial,
   practitionerName,
+  patientName,
 }: {
   initial: Consultation;
   practitionerName: string | null;
+  patientName: string | null;
 }) {
   const router = useRouter();
   const [consultation, setConsultation] = useState(initial);
@@ -28,23 +30,30 @@ export function PatientConsultationRoom({
     if (consultation.status !== "WAITING") return;
     let cancelled = false;
     (async () => {
-      const [{ count: aheadCount }, { count: available }] = await Promise.all([
-        supabase
-          .from("consultations")
-          .select("id", { count: "exact", head: true })
-          .eq("status", "WAITING")
-          .lt("created_at", initial.created_at),
-        supabase.from("practitioners").select("id", { count: "exact", head: true }).eq("status", "AVAILABLE"),
+      // Position comes from a SECURITY DEFINER RPC, not a plain select:
+      // RLS deliberately hides other patients' rows from a patient
+      // session, so a client-side count of "WAITING ahead of me" would
+      // always read zero. Available-practitioner count is a real
+      // directory table any signed-in user can already read.
+      const [{ data: pos }, { count: available }] = await Promise.all([
+        supabase.rpc("my_queue_position", { p_consultation_id: consultation.id }),
+        consultation.specialty
+          ? supabase
+              .from("practitioners")
+              .select("id", { count: "exact", head: true })
+              .eq("status", "AVAILABLE")
+              .contains("specialties", [consultation.specialty])
+          : supabase.from("practitioners").select("id", { count: "exact", head: true }).eq("status", "AVAILABLE"),
       ]);
       if (cancelled) return;
-      setPosition((aheadCount ?? 0) + 1);
+      setPosition(pos ?? null);
       setAvailableCount(available ?? 0);
     })();
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [consultation.status, initial.created_at]);
+  }, [consultation.status, consultation.id]);
 
   useEffect(() => {
     const channel = supabase
@@ -101,12 +110,41 @@ export function PatientConsultationRoom({
   }
 
   if (consultation.status === "WAITING") {
+    const greeting = patientName ? `Dear ${patientName},` : "Hi there,";
+
+    if (consultation.is_referral && !consultation.payment_verified) {
+      return (
+        <Card className="p-8 max-w-lg mx-auto text-center">
+          <h6 className="text-xs font-bold uppercase tracking-wide text-accent-700 mb-2">
+            Verifying your payment
+          </h6>
+          <h2 className="text-2xl mb-4">
+            {greeting} we&apos;ve received your referral and M-Pesa code — a practitioner is
+            confirming your payment and will connect with you shortly.
+          </h2>
+          <p className="text-sm text-neutral-600 mb-6">M-Pesa code: {consultation.mpesa_code}</p>
+          <Button variant="secondary" onClick={leaveQueue}>
+            Cancel
+          </Button>
+        </Card>
+      );
+    }
+
+    const positionMessage =
+      position === 1
+        ? "you're next in the queue — we'll attend to you in the next few minutes."
+        : position
+          ? `you're number ${position} in the queue — we'll attend to you shortly.`
+          : "you're in the queue — we'll attend to you shortly.";
+
     return (
       <Card className="p-8 max-w-lg mx-auto text-center">
         <h6 className="text-xs font-bold uppercase tracking-wide text-accent-700 mb-2">
           You&apos;re in the queue
         </h6>
-        <h2 className="text-2xl mb-4">A nutritionist will answer when available.</h2>
+        <h2 className="text-2xl mb-4">
+          {greeting} {positionMessage}
+        </h2>
         <div className="flex justify-center gap-8 mb-6">
           <div>
             <div className="font-heading text-4xl">{position ?? "…"}</div>

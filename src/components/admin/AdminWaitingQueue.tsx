@@ -11,6 +11,10 @@ interface WaitingEntry {
   specialty: Specialty | null;
   reason: string | null;
   created_at: string;
+  is_referral: boolean;
+  payment_verified: boolean;
+  mpesa_code: string | null;
+  referral_hospital: string | null;
   patients: { full_name: string } | null;
 }
 
@@ -27,7 +31,9 @@ export function AdminWaitingQueue({ initial }: { initial: WaitingEntry[] }) {
       .on("postgres_changes", { event: "*", schema: "public", table: "consultations" }, async () => {
         const { data } = await supabase
           .from("consultations")
-          .select("id, specialty, reason, created_at, patients(full_name)")
+          .select(
+            "id, specialty, reason, created_at, is_referral, payment_verified, mpesa_code, referral_hospital, patients(full_name)"
+          )
           .eq("status", "WAITING")
           .order("created_at", { ascending: true });
         setQueue((data as unknown as WaitingEntry[]) ?? []);
@@ -75,8 +81,22 @@ export function AdminWaitingQueue({ initial }: { initial: WaitingEntry[] }) {
               <tr key={q.id} className="border-t border-neutral-100">
                 <td className="p-3">{i + 1}</td>
                 <td className="p-3">{q.patients?.full_name}</td>
-                <td className="p-3">{q.specialty ? SPECIALTY_LABELS[q.specialty] : "—"}</td>
-                <td className="p-3 max-w-xs truncate">{q.reason}</td>
+                <td className="p-3">
+                  {q.is_referral ? (
+                    <span className="text-xs font-semibold uppercase tracking-wide text-accent-700 bg-accent-50 rounded-full px-2 py-0.5">
+                      Referral{q.payment_verified ? "" : " · unverified"}
+                    </span>
+                  ) : q.specialty ? (
+                    SPECIALTY_LABELS[q.specialty]
+                  ) : (
+                    "—"
+                  )}
+                </td>
+                <td className="p-3 max-w-xs truncate">
+                  {q.is_referral
+                    ? [q.referral_hospital, q.mpesa_code && `M-Pesa: ${q.mpesa_code}`].filter(Boolean).join(" · ")
+                    : q.reason}
+                </td>
                 <td className="p-3">{formatDistanceToNowStrict(new Date(q.created_at))}</td>
                 <td className="p-3 text-right">
                   <Button variant="secondary" onClick={() => remove(q.id)} disabled={busyId === q.id}>

@@ -82,6 +82,12 @@ export function PractitionerConsultationRoom({
             .filter(Boolean)
             .join(" · ")}
         </div>
+        {consultation.is_referral && (
+          <div className="text-sm text-neutral-600 mt-1">
+            Referred by {consultation.referral_doctor_name ?? "—"} ({consultation.referral_doctor_number ?? "—"}) at{" "}
+            {consultation.referral_hospital ?? "—"}
+          </div>
+        )}
       </Card>
 
       {dailyAuth ? (

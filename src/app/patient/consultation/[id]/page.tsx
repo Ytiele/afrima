@@ -23,9 +23,19 @@ export default async function PatientConsultationPage({
     practitionerName = practitioner?.full_name ?? null;
   }
 
+  const { data: patient } = await supabase
+    .from("patients")
+    .select("full_name")
+    .eq("id", consultation.patient_id)
+    .single();
+
   return (
     <div className="py-8">
-      <PatientConsultationRoom initial={consultation} practitionerName={practitionerName} />
+      <PatientConsultationRoom
+        initial={consultation}
+        practitionerName={practitionerName}
+        patientName={patient?.full_name ?? null}
+      />
     </div>
   );
 }

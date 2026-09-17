@@ -17,22 +17,36 @@ export interface WaitingRow {
   patients: { full_name: string; age: number | null; gender: string | null } | null;
 }
 
+export interface ReferralRow {
+  id: string;
+  referral_hospital: string | null;
+  referral_doctor_name: string | null;
+  referral_doctor_number: string | null;
+  mpesa_code: string | null;
+  created_at: string;
+  patients: { full_name: string } | null;
+}
+
 export function PractitionerQueue({
   initialStatus,
   initialQueue,
+  initialReferrals,
   activeConsultationId,
 }: {
   initialStatus: PractitionerStatus;
   initialQueue: WaitingRow[];
+  initialReferrals: ReferralRow[];
   activeConsultationId: string | null;
 }) {
   const router = useRouter();
   const [status, setStatus] = useState(initialStatus);
-  // No local mirror of the queue: `initialQueue` is re-fetched server-side
-  // and handed down fresh on every router.refresh() below, which is the
-  // only thing that ever changes it — a separate state copy would just be
-  // a second source of truth to keep in sync for no benefit.
+  // No local mirror of the queue: `initialQueue`/`initialReferrals` are
+  // re-fetched server-side and handed down fresh on every router.refresh()
+  // below, which is the only thing that ever changes them — a separate
+  // state copy would just be a second source of truth to keep in sync for
+  // no benefit.
   const queue = initialQueue;
+  const referrals = initialReferrals;
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [togglingStatus, setTogglingStatus] = useState(false);
@@ -94,6 +108,35 @@ export function PractitionerQueue({
     }
   }
 
+  async function verifyReferral(consultationId: string) {
+    setBusyId(consultationId);
+    setError("");
+    try {
+      const verifyRes = await fetch("/api/consultations/verify-referral", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ consultation_id: consultationId }),
+      });
+      const verifyBody = await verifyRes.json();
+      if (!verifyRes.ok) {
+        setError(verifyBody.error || "Could not verify this referral.");
+        router.refresh();
+        return;
+      }
+      const roomRes = await fetch("/api/daily/create-room", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ consultation_id: consultationId }),
+      });
+      if (!roomRes.ok) {
+        setError("Verified, but couldn't set up the video room. Try opening the consultation.");
+      }
+      router.push(`/practitioner/consultation/${consultationId}`);
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   if (activeConsultationId) {
     return (
       <Card className="p-6 text-center">
@@ -118,6 +161,34 @@ export function PractitionerQueue({
       </Card>
 
       {error && <p className="text-sm text-danger">{error}</p>}
+
+      {!!referrals.length && (
+        <Card className="p-2 border-accent-200">
+          <h3 className="text-lg px-4 pt-3 pb-1">Referral Requests awaiting verification</h3>
+          <ul className="divide-y divide-neutral-100">
+            {referrals.map((r) => (
+              <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
+                <div>
+                  <div className="font-semibold">{r.patients?.full_name ?? "Patient"}</div>
+                  <div className="text-sm text-neutral-600">
+                    Referred by {r.referral_doctor_name ?? "—"} · {r.referral_hospital ?? "—"} ·{" "}
+                    {r.referral_doctor_number ?? "—"}
+                  </div>
+                  <div className="text-sm text-neutral-600">
+                    M-Pesa code: <span className="font-mono font-semibold">{r.mpesa_code}</span>
+                  </div>
+                  <div className="text-xs text-neutral-500">
+                    Waiting {formatDistanceToNowStrict(new Date(r.created_at))}
+                  </div>
+                </div>
+                <Button onClick={() => verifyReferral(r.id)} disabled={busyId !== null || status !== "AVAILABLE"}>
+                  {busyId === r.id ? "Verifying…" : "Verify & Accept"}
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       <Card className="p-2">
         <h3 className="text-lg px-4 pt-3 pb-1">Waiting Patients</h3>

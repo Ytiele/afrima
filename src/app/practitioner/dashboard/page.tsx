@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeading } from "@/components/ui";
-import { PractitionerQueue, type WaitingRow } from "./PractitionerQueue";
+import { PractitionerQueue, type WaitingRow, type ReferralRow } from "./PractitionerQueue";
 
 export default async function PractitionerDashboard() {
   const supabase = await createClient();
@@ -34,7 +34,20 @@ export default async function PractitionerDashboard() {
     .from("consultations")
     .select("id, specialty, reason, referring_facility, created_at, patients(full_name, age, gender)")
     .eq("status", "WAITING")
+    .eq("is_referral", false)
     .in("specialty", practitioner.specialties)
+    .order("created_at", { ascending: true });
+
+  // Referral submissions aren't specialty-scoped and never show up in the
+  // plain "Answer" list -- any active practitioner can verify one.
+  const { data: referrals } = await supabase
+    .from("consultations")
+    .select(
+      "id, referral_hospital, referral_doctor_name, referral_doctor_number, mpesa_code, created_at, patients(full_name)"
+    )
+    .eq("status", "WAITING")
+    .eq("is_referral", true)
+    .eq("payment_verified", false)
     .order("created_at", { ascending: true });
 
   return (
@@ -43,6 +56,7 @@ export default async function PractitionerDashboard() {
       <PractitionerQueue
         initialStatus={practitioner.status}
         initialQueue={(queue as unknown as WaitingRow[]) ?? []}
+        initialReferrals={(referrals as unknown as ReferralRow[]) ?? []}
         activeConsultationId={activeConsultationId}
       />
     </div>

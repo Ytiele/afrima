@@ -4,10 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 
 const schema = z.object({ consultation_id: z.string().uuid() });
 
-// Wraps claim_consultation() (see supabase/migrations/0002_functions.sql)
-// — the actual atomicity lives in that function's single UPDATE ... WHERE
-// status = 'WAITING', not here. This route just translates its exceptions
-// into the HTTP responses the practitioner UI expects.
+// Wraps verify_referral_and_claim() (0007_referrals.sql) -- a practitioner
+// checking the M-Pesa code against what they see on their own paybill IS
+// the acceptance, so this both verifies and claims in one atomic step.
 export async function POST(request: Request) {
   const supabase = await createClient();
   const {
@@ -20,31 +19,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  const { data, error } = await supabase.rpc("claim_consultation", {
+  const { data, error } = await supabase.rpc("verify_referral_and_claim", {
     p_consultation_id: parsed.data.consultation_id,
   });
 
   if (error) {
     if (error.message.includes("ALREADY_CLAIMED")) {
       return NextResponse.json(
-        { error: "This patient has already been taken by another practitioner." },
+        { error: "This referral was already taken, or isn't awaiting verification." },
         { status: 409 }
       );
     }
     if (error.message.includes("PRACTITIONER_ALREADY_IN_CALL")) {
       return NextResponse.json({ error: "You're already in a call." }, { status: 409 });
-    }
-    if (error.message.includes("SPECIALTY_MISMATCH")) {
-      return NextResponse.json(
-        { error: "This patient asked for a different specialty than the ones you cover." },
-        { status: 403 }
-      );
-    }
-    if (error.message.includes("PAYMENT_NOT_VERIFIED")) {
-      return NextResponse.json(
-        { error: "This is a referral submission — verify it from the Referral Requests list first." },
-        { status: 403 }
-      );
     }
     if (error.message.includes("PRACTITIONER_SUSPENDED")) {
       return NextResponse.json({ error: "Your account is suspended." }, { status: 403 });
@@ -52,7 +39,7 @@ export async function POST(request: Request) {
     if (error.message.includes("NOT_A_PRACTITIONER")) {
       return NextResponse.json({ error: "Not authorized." }, { status: 403 });
     }
-    return NextResponse.json({ error: "Could not claim this consultation." }, { status: 500 });
+    return NextResponse.json({ error: "Could not verify this referral." }, { status: 500 });
   }
 
   return NextResponse.json({ consultation: data });
