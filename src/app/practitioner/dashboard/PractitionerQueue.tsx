@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button, Card, EmptyState } from "@/components/ui";
-import type { PractitionerStatus } from "@/lib/types";
+import type { PractitionerStatus, Specialty } from "@/lib/types";
+import { SPECIALTY_LABELS } from "@/lib/types";
 import { formatDistanceToNowStrict } from "date-fns";
 
 export interface WaitingRow {
   id: string;
+  specialty: Specialty | null;
   reason: string | null;
   referring_facility: string | null;
   created_at: string;
@@ -126,7 +128,14 @@ export function PractitionerQueue({
             {queue.map((c) => (
               <li key={c.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
                 <div>
-                  <div className="font-semibold">{c.patients?.full_name ?? "Patient"}</div>
+                  <div className="font-semibold">
+                    {c.patients?.full_name ?? "Patient"}
+                    {c.specialty && (
+                      <span className="ml-2 text-xs font-semibold uppercase tracking-wide text-accent-700 bg-accent-50 rounded-full px-2 py-0.5">
+                        {SPECIALTY_LABELS[c.specialty]}
+                      </span>
+                    )}
+                  </div>
                   <div className="text-sm text-neutral-600">
                     {[c.patients?.age && `${c.patients.age}y`, c.patients?.gender].filter(Boolean).join(" · ")}
                     {c.reason ? ` — ${c.reason}` : ""}

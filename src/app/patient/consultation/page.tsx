@@ -2,35 +2,33 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Card, Field, PageHeading, inputClass, textareaClass } from "@/components/ui";
+import { Button, Card, Field, PageHeading, textareaClass } from "@/components/ui";
+import { SPECIALTIES, SPECIALTY_LABELS, type Specialty } from "@/lib/types";
 
+// Reached from the patient dashboard's "Start a new consultation" link —
+// the patient already has a session and an on-file name from an earlier
+// visit this same session, so this only asks what's actually new: who
+// they want to see this time, and why.
 export default function StartConsultationPage() {
   const router = useRouter();
-  const [age, setAge] = useState("");
-  const [gender, setGender] = useState("");
-  const [bmi, setBmi] = useState("");
-  const [waz, setWaz] = useState("");
+  const [specialty, setSpecialty] = useState<Specialty | null>(null);
   const [reason, setReason] = useState("");
-  const [facility, setFacility] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
+    if (!specialty) {
+      setError("Choose who you'd like to see.");
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch("/api/consultations/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          age: age ? Number(age) : null,
-          gender: gender || null,
-          bmi: bmi ? Number(bmi) : null,
-          waz: waz ? Number(waz) : null,
-          reason,
-          referring_facility: facility || null,
-        }),
+        body: JSON.stringify({ specialty, reason }),
       });
       const body = await res.json();
       if (!res.ok) {
@@ -45,53 +43,27 @@ export default function StartConsultationPage() {
 
   return (
     <div>
-      <PageHeading eyebrow="One quick step" title="Tell us why you're here" />
+      <PageHeading eyebrow="One quick step" title="Who would you like to see?" />
       <Card className="p-6 max-w-xl">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Age">
-              <input
-                type="number"
-                min={0}
-                max={130}
-                className={inputClass}
-                value={age}
-                onChange={(e) => setAge(e.target.value)}
-              />
-            </Field>
-            <Field label="Gender">
-              <select
-                className={inputClass}
-                value={gender}
-                onChange={(e) => setGender(e.target.value)}
-              >
-                <option value="">Prefer not to say</option>
-                <option value="MALE">Male</option>
-                <option value="FEMALE">Female</option>
-                <option value="OTHER">Other</option>
-              </select>
-            </Field>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="BMI (optional)">
-              <input
-                type="number"
-                step="0.1"
-                className={inputClass}
-                value={bmi}
-                onChange={(e) => setBmi(e.target.value)}
-              />
-            </Field>
-            <Field label="WAZ (optional)">
-              <input
-                type="number"
-                step="0.1"
-                className={inputClass}
-                value={waz}
-                onChange={(e) => setWaz(e.target.value)}
-              />
-            </Field>
-          </div>
+          <Field label="Who would you like to see?">
+            <div className="grid grid-cols-1 gap-2">
+              {SPECIALTIES.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setSpecialty(s)}
+                  className={`text-left px-4 py-2 rounded-lg border text-sm font-semibold transition-colors ${
+                    specialty === s
+                      ? "border-accent-600 bg-accent-50 text-accent-700"
+                      : "border-neutral-200 text-neutral-700 hover:border-accent-300"
+                  }`}
+                >
+                  {SPECIALTY_LABELS[s]}
+                </button>
+              ))}
+            </div>
+          </Field>
           <Field label="Reason for consultation">
             <textarea
               className={textareaClass}
@@ -100,13 +72,6 @@ export default function StartConsultationPage() {
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="What would you like to discuss today?"
-            />
-          </Field>
-          <Field label="Referring facility (optional)">
-            <input
-              className={inputClass}
-              value={facility}
-              onChange={(e) => setFacility(e.target.value)}
             />
           </Field>
           {error && <p className="text-sm text-danger">{error}</p>}

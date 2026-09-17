@@ -34,6 +34,12 @@ export async function POST(request: Request) {
     if (error.message.includes("PRACTITIONER_ALREADY_IN_CALL")) {
       return NextResponse.json({ error: "You're already in a call." }, { status: 409 });
     }
+    if (error.message.includes("SPECIALTY_MISMATCH")) {
+      return NextResponse.json(
+        { error: "This patient asked for a different specialty than the ones you cover." },
+        { status: 403 }
+      );
+    }
     if (error.message.includes("PRACTITIONER_SUSPENDED")) {
       return NextResponse.json({ error: "Your account is suspended." }, { status: 403 });
     }

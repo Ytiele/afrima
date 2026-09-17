@@ -2,6 +2,16 @@ export type Role = "PATIENT" | "PRACTITIONER" | "ADMIN";
 
 export type PractitionerStatus = "OFFLINE" | "AVAILABLE" | "IN_CALL" | "SUSPENDED";
 
+export type Specialty = "GENERAL_PRACTITIONER" | "NUTRITIONIST" | "PSYCHOLOGIST";
+
+export const SPECIALTIES: Specialty[] = ["GENERAL_PRACTITIONER", "NUTRITIONIST", "PSYCHOLOGIST"];
+
+export const SPECIALTY_LABELS: Record<Specialty, string> = {
+  GENERAL_PRACTITIONER: "General Practitioner",
+  NUTRITIONIST: "Nutritionist",
+  PSYCHOLOGIST: "Psychologist",
+};
+
 export type ConsultationStatus =
   | "WAITING"
   | "CLAIMED"
@@ -38,6 +48,7 @@ export interface Practitioner {
   user_id: string;
   full_name: string;
   status: PractitionerStatus;
+  specialties: Specialty[];
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -48,6 +59,7 @@ export interface Consultation {
   patient_id: string;
   practitioner_id: string | null;
   status: ConsultationStatus;
+  specialty: Specialty | null;
   reason: string | null;
   diagnosis: string | null;
   referring_facility: string | null;

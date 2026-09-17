@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button, Card, EmptyState, PractitionerStatusPill } from "@/components/ui";
-import type { Practitioner } from "@/lib/types";
+import { SPECIALTIES, SPECIALTY_LABELS, type Practitioner, type Specialty } from "@/lib/types";
 
 interface Row extends Practitioner {
   current_patient?: string | null;
@@ -29,6 +29,26 @@ export function AdminPractitioners({ initial }: { initial: Row[] }) {
       supabase.removeChannel(channel);
     };
   }, []);
+
+  async function toggleSpecialty(row: Row, specialty: Specialty) {
+    const has = row.specialties.includes(specialty);
+    const next = has ? row.specialties.filter((s) => s !== specialty) : [...row.specialties, specialty];
+    if (!next.length) return; // must always cover at least one specialty
+    setBusyId(row.id);
+    try {
+      const res = await fetch("/api/practitioners/specialties", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ practitioner_id: row.id, specialties: next }),
+      });
+      if (res.ok) {
+        const body = await res.json();
+        setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, ...body.practitioner } : r)));
+      }
+    } finally {
+      setBusyId(null);
+    }
+  }
 
   async function toggle(row: Row) {
     setBusyId(row.id);
@@ -58,6 +78,7 @@ export function AdminPractitioners({ initial }: { initial: Row[] }) {
             <tr className="text-left text-xs uppercase tracking-wide text-neutral-500">
               <th className="p-3">Name</th>
               <th className="p-3">Status</th>
+              <th className="p-3">Specialties</th>
               <th className="p-3">Current Patient</th>
               <th className="p-3" />
             </tr>
@@ -68,6 +89,21 @@ export function AdminPractitioners({ initial }: { initial: Row[] }) {
                 <td className="p-3 font-semibold">{r.full_name}</td>
                 <td className="p-3">
                   <PractitionerStatusPill status={r.status} />
+                </td>
+                <td className="p-3">
+                  <div className="flex flex-wrap gap-2">
+                    {SPECIALTIES.map((s) => (
+                      <label key={s} className="flex items-center gap-1 text-xs text-neutral-600">
+                        <input
+                          type="checkbox"
+                          checked={r.specialties.includes(s)}
+                          disabled={busyId === r.id}
+                          onChange={() => toggleSpecialty(r, s)}
+                        />
+                        {SPECIALTY_LABELS[s]}
+                      </label>
+                    ))}
+                  </div>
                 </td>
                 <td className="p-3">{r.current_patient || "—"}</td>
                 <td className="p-3 text-right">

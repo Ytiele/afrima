@@ -42,7 +42,7 @@ export default async function PatientDashboard() {
 
       <Card className="p-8 mb-8 bg-gradient-to-br from-accent-50 to-sage-50">
         <h6 className="text-xs font-bold uppercase tracking-wide text-accent-700 mb-2">
-          Need to talk to a nutritionist?
+          Need to talk to someone?
         </h6>
         <h3 className="text-xl mb-3 max-w-md">
           {activeConsultationId

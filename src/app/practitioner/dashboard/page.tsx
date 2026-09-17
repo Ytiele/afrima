@@ -12,7 +12,7 @@ export default async function PractitionerDashboard() {
 
   const { data: practitioner } = await supabase
     .from("practitioners")
-    .select("id, status, full_name")
+    .select("id, status, full_name, specialties")
     .eq("user_id", user.id)
     .single();
   if (!practitioner) redirect("/login");
@@ -32,8 +32,9 @@ export default async function PractitionerDashboard() {
 
   const { data: queue } = await supabase
     .from("consultations")
-    .select("id, reason, referring_facility, created_at, patients(full_name, age, gender)")
+    .select("id, specialty, reason, referring_facility, created_at, patients(full_name, age, gender)")
     .eq("status", "WAITING")
+    .in("specialty", practitioner.specialties)
     .order("created_at", { ascending: true });
 
   return (

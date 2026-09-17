@@ -6,7 +6,7 @@ export default async function AdminQueuePage() {
   const supabase = await createClient();
   const { data: waitingQueue } = await supabase
     .from("consultations")
-    .select("id, reason, created_at, patients(full_name)")
+    .select("id, specialty, reason, created_at, patients(full_name)")
     .eq("status", "WAITING")
     .order("created_at", { ascending: true });
 

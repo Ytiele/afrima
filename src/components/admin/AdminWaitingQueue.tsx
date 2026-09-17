@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button, Card, EmptyState } from "@/components/ui";
+import { SPECIALTY_LABELS, type Specialty } from "@/lib/types";
 import { formatDistanceToNowStrict } from "date-fns";
 
 interface WaitingEntry {
   id: string;
+  specialty: Specialty | null;
   reason: string | null;
   created_at: string;
   patients: { full_name: string } | null;
@@ -25,7 +27,7 @@ export function AdminWaitingQueue({ initial }: { initial: WaitingEntry[] }) {
       .on("postgres_changes", { event: "*", schema: "public", table: "consultations" }, async () => {
         const { data } = await supabase
           .from("consultations")
-          .select("id, reason, created_at, patients(full_name)")
+          .select("id, specialty, reason, created_at, patients(full_name)")
           .eq("status", "WAITING")
           .order("created_at", { ascending: true });
         setQueue((data as unknown as WaitingEntry[]) ?? []);
@@ -62,6 +64,7 @@ export function AdminWaitingQueue({ initial }: { initial: WaitingEntry[] }) {
             <tr className="text-left text-xs uppercase tracking-wide text-neutral-500">
               <th className="p-3">#</th>
               <th className="p-3">Patient</th>
+              <th className="p-3">Specialty</th>
               <th className="p-3">Reason</th>
               <th className="p-3">Waiting</th>
               <th className="p-3" />
@@ -72,6 +75,7 @@ export function AdminWaitingQueue({ initial }: { initial: WaitingEntry[] }) {
               <tr key={q.id} className="border-t border-neutral-100">
                 <td className="p-3">{i + 1}</td>
                 <td className="p-3">{q.patients?.full_name}</td>
+                <td className="p-3">{q.specialty ? SPECIALTY_LABELS[q.specialty] : "—"}</td>
                 <td className="p-3 max-w-xs truncate">{q.reason}</td>
                 <td className="p-3">{formatDistanceToNowStrict(new Date(q.created_at))}</td>
                 <td className="p-3 text-right">

@@ -87,9 +87,9 @@ function LoginForm() {
         </Button>
       </form>
       <p className="text-sm text-neutral-600 mt-6 text-center">
-        New patient?{" "}
-        <Link href="/register" className="text-accent-700 font-semibold">
-          Create an account
+        Need care instead?{" "}
+        <Link href="/" className="text-accent-700 font-semibold">
+          Go to the homepage
         </Link>
       </p>
     </Card>
