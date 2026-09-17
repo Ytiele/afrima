@@ -47,9 +47,12 @@ export default function RegisterPage() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-bg px-4 py-12">
       <Card className="w-full max-w-md p-8">
-        <h6 className="text-xs font-bold uppercase tracking-wide text-accent-700 mb-2">
+        <Link
+          href="/"
+          className="block text-xs font-bold uppercase tracking-wide text-accent-700 mb-2"
+        >
           Afrima Digi-Health
-        </h6>
+        </Link>
         <h1 className="text-2xl mb-6">Create your patient account</h1>
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <Field label="Full name">

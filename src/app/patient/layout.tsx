@@ -22,7 +22,7 @@ export default async function PatientLayout({ children }: { children: React.Reac
     <div className="min-h-screen flex flex-col">
       <header className="border-b border-neutral-200 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <Link href="/patient/dashboard" className="font-heading text-xl text-accent-700">
+          <Link href="/" className="font-heading text-xl text-accent-700">
             Afrima Digi-Health
           </Link>
           <nav className="flex items-center gap-4 text-sm font-semibold">

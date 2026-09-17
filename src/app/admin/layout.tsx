@@ -38,7 +38,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="min-h-screen flex flex-col">
       <header className="border-b border-neutral-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <span className="font-heading text-xl text-accent-700">Afrima Admin</span>
+          <Link href="/" className="font-heading text-xl text-accent-700">
+            Afrima Admin
+          </Link>
           <div className="flex items-center gap-4 text-sm font-semibold">
             <span className="text-neutral-600">{profile.full_name}</span>
             {ownPractitioner && (

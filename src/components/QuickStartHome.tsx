@@ -107,7 +107,9 @@ export function QuickStartHome() {
   return (
     <main className="min-h-screen flex flex-col">
       <div className="wrap max-w-5xl mx-auto w-full px-4 sm:px-6 py-5 flex items-center justify-between">
-        <span className="font-heading text-xl text-accent-700">Afrima Digi-Health</span>
+        <Link href="/" className="font-heading text-xl text-accent-700">
+          Afrima Digi-Health
+        </Link>
         <Link href="/login" className="text-sm font-semibold text-neutral-600 hover:text-text">
           Practitioner or admin? Log in
         </Link>
