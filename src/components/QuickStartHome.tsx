@@ -128,6 +128,47 @@ function Reveal({
   );
 }
 
+// A full-screen green splash showing the logo's morph-in animation, then
+// dissolving away to reveal the page. Plays once per mount (i.e. once per
+// real page load of "/"); skipped entirely for prefers-reduced-motion
+// rather than making that visitor sit through a hold they can't perceive
+// as motion anyway.
+function SplashIntro() {
+  const [dissolving, setDissolving] = useState(false);
+  const [hidden, setHidden] = useState(false);
+
+  useEffect(() => {
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const dissolveTimer = setTimeout(() => setDissolving(true), reduced ? 0 : 1300);
+    const hideTimer = setTimeout(() => setHidden(true), reduced ? 0 : 2000);
+    return () => {
+      clearTimeout(dissolveTimer);
+      clearTimeout(hideTimer);
+    };
+  }, []);
+
+  if (hidden) return null;
+
+  return (
+    <div
+      aria-hidden="true"
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-brand-green-900 transition-all duration-700 ease-out ${
+        dissolving ? "opacity-0 scale-105 pointer-events-none" : "opacity-100 scale-100"
+      }`}
+    >
+      <Image
+        src="/logo.png"
+        alt=""
+        width={160}
+        height={160}
+        quality={90}
+        priority
+        className="h-28 sm:h-36 w-auto animate-logo-morph"
+      />
+    </div>
+  );
+}
+
 function Kicker({ children, dark = false }: { children: ReactNode; dark?: boolean }) {
   return (
     <span
@@ -144,6 +185,7 @@ function Kicker({ children, dark = false }: { children: ReactNode; dark?: boolea
 export function QuickStartHome() {
   return (
     <main className="min-h-screen flex flex-col bg-white">
+      <SplashIntro />
       <nav className="sticky top-0 z-10 bg-brand-green-900">
         <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 shrink-0">
@@ -153,7 +195,7 @@ export function QuickStartHome() {
               width={56}
               height={56}
               quality={90}
-              className="h-11 sm:h-12 w-auto animate-logo-morph"
+              className="h-11 sm:h-12 w-auto"
             />
             <span className="hidden sm:inline font-heading text-lg text-white">Afrima Digi-Health</span>
           </Link>
