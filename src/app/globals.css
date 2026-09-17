@@ -39,6 +39,12 @@
 
   --color-danger: #b3261e;
   --color-danger-bg: #fdeceb;
+
+  /* Afrimerchants Ltd brand palette — used on the public homepage */
+  --color-brand-black: #020202;
+  --color-brand-green-900: #0d2818;
+  --color-brand-cta: #04471c;
+  --color-brand-cta-hover: #06611f;
 }
 
 @theme inline {
@@ -76,6 +82,10 @@
   --color-neutral-900: var(--color-neutral-900);
   --color-danger: var(--color-danger);
   --color-danger-bg: var(--color-danger-bg);
+  --color-brand-black: var(--color-brand-black);
+  --color-brand-green-900: var(--color-brand-green-900);
+  --color-brand-cta: var(--color-brand-cta);
+  --color-brand-cta-hover: var(--color-brand-cta-hover);
   --font-heading: var(--font-caprasimo), Georgia, serif;
   --font-sans: var(--font-figtree), system-ui, -apple-system, sans-serif;
 }
