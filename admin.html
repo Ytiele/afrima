@@ -8,6 +8,20 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="openroom.css">
+<style>
+  .admin-login-wrap{min-height:100vh;display:grid;grid-template-columns:1.15fr 1fr}
+  @media (max-width:860px){ .admin-login-wrap{grid-template-columns:1fr} }
+  .admin-login-art{position:relative;overflow:hidden;background:var(--color-neutral-900);min-height:320px}
+  .admin-login-art img{width:100%;height:100%;object-fit:cover;object-position:center 30%;opacity:.94}
+  .admin-login-art::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(180deg,rgba(28,26,22,.22) 0%,rgba(28,26,22,.04) 35%,rgba(28,26,22,.55) 70%,rgba(28,26,22,.94) 100%)}
+  .admin-login-brand{position:absolute;left:var(--space-6);top:var(--space-5);z-index:2;
+    font-family:var(--font-heading);font-size:22px;color:#fff}
+  .admin-login-caption{position:absolute;left:var(--space-6);right:var(--space-6);bottom:var(--space-6);z-index:2;color:#fff}
+  .admin-login-caption h2{color:#fff;font-size:clamp(22px,2.6vw,30px);max-width:20ch;margin-bottom:var(--space-2)}
+  .admin-login-caption p{font-size:14px;color:rgba(255,255,255,.8);max-width:36ch;margin:0}
+  .admin-login-form-col{display:flex;align-items:center;justify-content:center;padding:var(--space-6)}
+</style>
 </head>
 <body>
 <div id="app"></div>
@@ -99,14 +113,25 @@
   });
 
   function viewLogin(){
-    return '<div class="wrap" style="max-width:420px;padding-top:15vh">' +
-      '<div style="text-align:center;margin-bottom:var(--space-6)"><span class="nav-brand">Openroom admin</span></div>' +
-      '<form class="js-login-form card elev-md" style="padding:var(--space-6);gap:var(--space-4)">' +
-        '<div class="field"><label>Admin password</label>' +
-          '<input class="input" type="password" autocomplete="current-password" autofocus /></div>' +
-        (S.err ? '<p style="margin:0;font-size:13px;color:#b3261e">' + esc(S.err) + '</p>' : '') +
-        '<button class="btn btn-primary btn-block" style="min-height:44px" type="submit">Log in</button>' +
-      '</form>' +
+    return '<div class="admin-login-wrap">' +
+      '<div class="admin-login-art">' +
+        '<img src="admin-hero.jpg" alt="" />' +
+        '<div class="admin-login-brand">Openroom</div>' +
+        '<div class="admin-login-caption">' +
+          '<h2>Every room, one view.</h2>' +
+          '<p>See who’s online, who’s in a call, and step in the moment you need to.</p>' +
+        '</div>' +
+      '</div>' +
+      '<div class="admin-login-form-col">' +
+        '<form class="js-login-form card elev-lg" style="width:100%;max-width:380px;padding:var(--space-6);gap:var(--space-4)">' +
+          '<div><div class="card-kicker">Restricted access</div><h3 style="margin:0">Admin sign-in</h3></div>' +
+          '<div class="field"><label>Password</label>' +
+            '<input class="input" type="password" autocomplete="current-password" autofocus placeholder="••••••••" /></div>' +
+          (S.err ? '<p style="margin:0;font-size:13px;color:#b3261e">' + esc(S.err) + '</p>' : '') +
+          '<button class="btn btn-primary btn-block" style="min-height:46px" type="submit">Log in</button>' +
+          '<p class="text-muted" style="font-size:12px;margin:0;text-align:center"><a href="/">← Back to Openroom</a></p>' +
+        '</form>' +
+      '</div>' +
     '</div>';
   }
 

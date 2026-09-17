@@ -730,7 +730,10 @@
 
   // ---------------------------- landing -------------------------------
   function viewLanding(){
-    return navBar('<button class="btn btn-primary" style="min-height:44px" data-act="to-signin">Sign in</button>') +
+    return navBar(
+      '<a class="btn btn-ghost" href="/admin" style="font-size:13px">Admin login</a>' +
+      '<button class="btn btn-primary" style="min-height:44px" data-act="to-signin">Sign in</button>'
+    ) +
     warnBanner() +
     '<div class="wrap" style="padding:var(--space-6) var(--space-6) var(--space-8);display:grid;' +
       'grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--space-8);align-items:center">' +
