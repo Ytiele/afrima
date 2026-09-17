@@ -130,7 +130,7 @@ function Reveal({
 export function QuickStartHome() {
   return (
     <main className="min-h-screen flex flex-col bg-white">
-      <nav className="sticky top-0 z-10 bg-brand-black">
+      <nav className="sticky top-0 z-10 bg-brand-green-900">
         <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 shrink-0">
             <Image
@@ -203,8 +203,8 @@ export function QuickStartHome() {
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center">
           <Reveal className="relative aspect-[4/3] rounded-2xl overflow-hidden order-2 md:order-1">
             <Image
-              src="/video-call-woman.jpg"
-              alt="A practitioner speaking with a patient over video call"
+              src="/who-we-are.jpg"
+              alt="A healthcare professional working at her laptop"
               fill
               quality={90}
               sizes="(min-width: 768px) 40vw, 100vw"
@@ -293,7 +293,7 @@ export function QuickStartHome() {
         </div>
       </section>
 
-      <footer className="px-4 py-10 bg-brand-black">
+      <footer className="px-4 py-10 bg-brand-green-900">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Image src="/logo.png" alt="Afrima Digi-Health" width={32} height={32} className="h-8 w-auto" />
