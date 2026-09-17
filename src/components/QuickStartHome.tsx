@@ -159,11 +159,11 @@ function SplashIntro() {
       <Image
         src="/logo.png"
         alt=""
-        width={160}
-        height={160}
+        width={200}
+        height={200}
         quality={90}
         priority
-        className="h-28 sm:h-36 w-auto animate-logo-morph"
+        className="h-36 sm:h-44 w-auto animate-logo-morph"
       />
     </div>
   );
