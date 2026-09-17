@@ -30,17 +30,18 @@ export default async function PractitionerDashboard() {
     activeConsultationId = active?.id ?? null;
   }
 
-  const { data: queue } = await supabase
+  const { data: queue, error: queueError } = await supabase
     .from("consultations")
     .select("id, specialty, reason, referring_facility, created_at, patients(full_name, age, gender)")
     .eq("status", "WAITING")
     .eq("is_referral", false)
     .in("specialty", practitioner.specialties)
     .order("created_at", { ascending: true });
+  if (queueError) console.error("practitioner queue query failed:", queueError.message);
 
   // Referral submissions aren't specialty-scoped and never show up in the
   // plain "Answer" list -- any active practitioner can verify one.
-  const { data: referrals } = await supabase
+  const { data: referrals, error: referralsError } = await supabase
     .from("consultations")
     .select(
       "id, referral_hospital, referral_doctor_name, referral_doctor_number, mpesa_code, created_at, patients(full_name)"
@@ -49,6 +50,7 @@ export default async function PractitionerDashboard() {
     .eq("is_referral", true)
     .eq("payment_verified", false)
     .order("created_at", { ascending: true });
+  if (referralsError) console.error("practitioner referrals query failed:", referralsError.message);
 
   return (
     <div>

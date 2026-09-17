@@ -9,14 +9,7 @@ export default async function AdminDashboardPage() {
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
 
-  const [
-    { count: activePractitioners },
-    { count: waiting },
-    { count: ongoing },
-    { count: completedToday },
-    { data: ongoingCalls },
-    { data: waitingQueue },
-  ] = await Promise.all([
+  const results = await Promise.all([
     supabase.from("practitioners").select("id", { count: "exact", head: true }).eq("is_active", true),
     supabase.from("consultations").select("id", { count: "exact", head: true }).eq("status", "WAITING"),
     supabase.from("consultations").select("id", { count: "exact", head: true }).eq("status", "IN_CALL"),
@@ -36,6 +29,17 @@ export default async function AdminDashboardPage() {
       .eq("status", "WAITING")
       .order("created_at", { ascending: true }),
   ]);
+  results.forEach((r) => {
+    if (r.error) console.error("admin dashboard query failed:", r.error.message);
+  });
+  const [
+    { count: activePractitioners },
+    { count: waiting },
+    { count: ongoing },
+    { count: completedToday },
+    { data: ongoingCalls },
+    { data: waitingQueue },
+  ] = results;
 
   return (
     <div className="flex flex-col gap-6">
