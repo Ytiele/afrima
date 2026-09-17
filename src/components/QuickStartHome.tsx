@@ -136,9 +136,10 @@ export function QuickStartHome() {
             <Image
               src="/logo.png"
               alt="Afrima Digi-Health"
-              width={40}
-              height={40}
-              className="h-9 sm:h-10 w-auto animate-logo-morph"
+              width={56}
+              height={56}
+              quality={90}
+              className="h-11 sm:h-12 w-auto animate-logo-morph"
             />
             <span className="hidden sm:inline font-heading text-lg text-white">Afrima Digi-Health</span>
           </Link>
@@ -296,7 +297,7 @@ export function QuickStartHome() {
       <footer className="px-4 py-10 bg-brand-green-900">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Image src="/logo.png" alt="Afrima Digi-Health" width={32} height={32} className="h-8 w-auto" />
+            <Image src="/logo.png" alt="Afrima Digi-Health" width={56} height={56} quality={90} className="h-12 w-auto" />
             <div>
               <div className="font-heading text-white text-sm">Afrima Digi-Health Ke</div>
               <div className="text-xs text-neutral-400">Connect. Consult. Revitalize.</div>
