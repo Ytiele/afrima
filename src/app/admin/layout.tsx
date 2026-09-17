@@ -25,6 +25,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     .single();
   if (!profile || profile.role !== "ADMIN" || !profile.is_active) redirect("/login");
 
+  // Admins who are ALSO an active practitioner (e.g. a small team where
+  // one person wears both hats) get a quick link over to that dashboard.
+  const { data: ownPractitioner } = await supabase
+    .from("practitioners")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("is_active", true)
+    .maybeSingle();
+
   return (
     <div className="min-h-screen flex flex-col">
       <header className="border-b border-neutral-200 bg-white">
@@ -32,6 +41,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <span className="font-heading text-xl text-accent-700">Afrima Admin</span>
           <div className="flex items-center gap-4 text-sm font-semibold">
             <span className="text-neutral-600">{profile.full_name}</span>
+            {ownPractitioner && (
+              <Link href="/practitioner/dashboard" className="text-accent-700 hover:text-accent-600">
+                Practitioner view
+              </Link>
+            )}
             <form action="/api/auth/signout" method="post">
               <button className="text-neutral-600 hover:text-text">Log out</button>
             </form>

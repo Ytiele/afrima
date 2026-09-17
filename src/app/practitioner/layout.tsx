@@ -14,7 +14,12 @@ export default async function PractitionerLayout({ children }: { children: React
     .select("role, is_active")
     .eq("user_id", user.id)
     .single();
-  if (!profile || profile.role !== "PRACTITIONER" || !profile.is_active) redirect("/login");
+  if (!profile || !profile.is_active) redirect("/login");
+  // An admin who also has an active practitioners row is allowed in here
+  // too — the real authorization is "do you have a practitioner record",
+  // not the profile's primary role. A patient has no practitioners row
+  // and is rejected below regardless of what profile.role says.
+  if (profile.role !== "PRACTITIONER" && profile.role !== "ADMIN") redirect("/login");
 
   const { data: practitioner } = await supabase
     .from("practitioners")
@@ -34,6 +39,11 @@ export default async function PractitionerLayout({ children }: { children: React
             <Link href="/practitioner/history" className="text-neutral-600 hover:text-text">
               History
             </Link>
+            {profile.role === "ADMIN" && (
+              <Link href="/admin/dashboard" className="text-accent-700 hover:text-accent-600">
+                Admin view
+              </Link>
+            )}
             <form action="/api/auth/signout" method="post">
               <button className="text-neutral-600 hover:text-text">Log out</button>
             </form>
