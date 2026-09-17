@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -79,28 +79,82 @@ const TRUST_POINTS: { title: string; description: string; icon: LucideIcon }[] =
   },
 ];
 
+// Fades + slides a section's content in the first time it scrolls into
+// view (an element already on screen at page load reveals immediately,
+// so the hero content animates in "on load" for free). Reveals once and
+// stops observing -- this is a one-time entrance, not a repeating effect.
+function Reveal({
+  children,
+  className = "",
+  delay = 0,
+  id,
+}: {
+  children: ReactNode;
+  className?: string;
+  delay?: number;
+  id?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.unobserve(el);
+        }
+      },
+      { threshold: 0.15 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      id={id}
+      className={`transition-all duration-700 ease-out ${
+        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+      } ${className}`}
+      style={{ transitionDelay: `${delay}ms` }}
+    >
+      {children}
+    </div>
+  );
+}
+
 export function QuickStartHome() {
   return (
     <main className="min-h-screen flex flex-col bg-white">
       <nav className="sticky top-0 z-10 bg-brand-black">
         <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 shrink-0">
-            <Image src="/logo.png" alt="Afrima Digi-Health" width={40} height={40} className="h-9 sm:h-10 w-auto" />
+            <Image
+              src="/logo.png"
+              alt="Afrima Digi-Health"
+              width={40}
+              height={40}
+              className="h-9 sm:h-10 w-auto animate-logo-morph"
+            />
             <span className="hidden sm:inline font-heading text-lg text-white">Afrima Digi-Health</span>
           </Link>
           <div className="flex items-center gap-3 sm:gap-5 text-sm font-semibold">
-            <a href="#who-we-are" className="hidden md:inline text-neutral-300 hover:text-white">
+            <a href="#who-we-are" className="hidden md:inline text-neutral-300 hover:text-white transition-colors">
               Who We Are
             </a>
-            <a href="#services" className="hidden md:inline text-neutral-300 hover:text-white">
+            <a href="#services" className="hidden md:inline text-neutral-300 hover:text-white transition-colors">
               Our Services
             </a>
-            <Link href="/login" className="text-neutral-300 hover:text-white">
+            <Link href="/login" className="text-neutral-300 hover:text-white transition-colors">
               <span className="hidden sm:inline">Practitioner or admin? </span>Log in
             </Link>
             <a
               href="#get-started"
-              className="rounded-full px-3 sm:px-4 py-2 text-white bg-brand-cta hover:bg-brand-cta-hover transition-colors whitespace-nowrap"
+              className="rounded-full px-3 sm:px-4 py-2 text-white bg-brand-cta hover:bg-brand-cta-hover whitespace-nowrap transition-all duration-200 ease-out hover:scale-[1.05] hover:shadow-md active:scale-95"
             >
               Join the Queue
             </a>
@@ -126,7 +180,7 @@ export function QuickStartHome() {
           }}
         />
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center">
-          <div>
+          <Reveal>
             <h6 className="text-xs font-bold uppercase tracking-wide mb-3 text-accent-300">
               Care, the moment you need it
             </h6>
@@ -137,17 +191,17 @@ export function QuickStartHome() {
               No booking, no account, no appointment slots. Tell us your name and who you&apos;d
               like to see, and you&apos;ll be connected by video call the moment someone&apos;s free.
             </p>
-          </div>
+          </Reveal>
 
-          <div id="get-started">
+          <Reveal delay={150} id="get-started">
             <GetStartedCard />
-          </div>
+          </Reveal>
         </div>
       </section>
 
       <section id="who-we-are" className="px-4 py-16 sm:py-20 bg-white">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center">
-          <div className="relative aspect-[4/3] rounded-2xl overflow-hidden order-2 md:order-1">
+          <Reveal className="relative aspect-[4/3] rounded-2xl overflow-hidden order-2 md:order-1">
             <Image
               src="/video-call-woman.jpg"
               alt="A practitioner speaking with a patient over video call"
@@ -156,8 +210,8 @@ export function QuickStartHome() {
               sizes="(min-width: 768px) 40vw, 100vw"
               className="object-cover"
             />
-          </div>
-          <div className="order-1 md:order-2">
+          </Reveal>
+          <Reveal delay={150} className="order-1 md:order-2">
             <h6 className="text-xs font-bold uppercase tracking-wide text-brand-cta mb-3">Who We Are</h6>
             <h2 className="text-3xl sm:text-4xl mb-6">Afrimerchants Ltd</h2>
             <p className="text-base text-neutral-700">
@@ -183,20 +237,20 @@ export function QuickStartHome() {
                 </div>
               </div>
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
       <section className="px-4 py-16 sm:py-20 bg-neutral-50">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center">
-          <div>
+          <Reveal>
             <h6 className="text-xs font-bold uppercase tracking-wide text-brand-cta mb-3">
               Virtual care, real connection
             </h6>
             <h2 className="text-3xl sm:text-4xl mb-6">Trusted telehealth, wherever you are</h2>
             <div className="flex flex-col gap-6">
-              {TRUST_POINTS.map((t) => (
-                <div key={t.title} className="flex gap-4">
+              {TRUST_POINTS.map((t, i) => (
+                <Reveal key={t.title} delay={i * 100} className="flex gap-4">
                   <div className="shrink-0 h-11 w-11 rounded-full bg-brand-cta/10 flex items-center justify-center">
                     <t.icon className="h-5 w-5 text-brand-cta" />
                   </div>
@@ -204,11 +258,11 @@ export function QuickStartHome() {
                     <h3 className="text-base font-semibold mb-1">{t.title}</h3>
                     <p className="text-sm text-neutral-600">{t.description}</p>
                   </div>
-                </div>
+                </Reveal>
               ))}
             </div>
-          </div>
-          <div className="relative aspect-[4/3] rounded-2xl overflow-hidden">
+          </Reveal>
+          <Reveal delay={150} className="relative aspect-[4/3] rounded-2xl overflow-hidden">
             <Image
               src="/video-call-man.jpg"
               alt="A practitioner joining a secure video consultation from their desk"
@@ -217,21 +271,23 @@ export function QuickStartHome() {
               sizes="(min-width: 768px) 40vw, 100vw"
               className="object-cover"
             />
-          </div>
+          </Reveal>
         </div>
       </section>
 
       <section id="services" className="px-4 py-16 sm:py-20 bg-white">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10">
+          <Reveal className="text-center mb-10">
             <h6 className="text-xs font-bold uppercase tracking-wide text-brand-cta mb-3">
               What we offer
             </h6>
             <h2 className="text-3xl sm:text-4xl">Our Services</h2>
-          </div>
+          </Reveal>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {SERVICES.map((s) => (
-              <ServiceCard key={s.title} {...s} />
+            {SERVICES.map((s, i) => (
+              <Reveal key={s.title} delay={(i % 3) * 100}>
+                <ServiceCard {...s} />
+              </Reveal>
             ))}
           </div>
         </div>
@@ -289,7 +345,7 @@ function ServiceCard({
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="mt-2 text-sm font-semibold text-brand-cta hover:text-brand-cta-hover"
+          className="mt-2 text-sm font-semibold text-brand-cta hover:text-brand-cta-hover transition-transform duration-150 hover:translate-x-0.5"
         >
           {expanded ? "Read less" : "Read more"}
         </button>
@@ -307,7 +363,7 @@ function GetStartedCard() {
         <button
           type="button"
           onClick={() => setMode("queue")}
-          className={`px-3 py-1.5 rounded-full ${
+          className={`px-3 py-1.5 rounded-full transition-all duration-200 ease-out hover:scale-[1.04] active:scale-95 ${
             mode === "queue" ? "bg-brand-cta text-white" : "bg-neutral-100 text-neutral-600"
           }`}
         >
@@ -316,7 +372,7 @@ function GetStartedCard() {
         <button
           type="button"
           onClick={() => setMode("referral")}
-          className={`px-3 py-1.5 rounded-full ${
+          className={`px-3 py-1.5 rounded-full transition-all duration-200 ease-out hover:scale-[1.04] active:scale-95 ${
             mode === "referral" ? "bg-brand-cta text-white" : "bg-neutral-100 text-neutral-600"
           }`}
         >
@@ -393,7 +449,7 @@ function QueueForm() {
               key={s}
               type="button"
               onClick={() => setSpecialty(s)}
-              className={`text-left px-4 py-2 rounded-lg border text-sm font-semibold transition-colors ${
+              className={`text-left px-4 py-2 rounded-lg border text-sm font-semibold transition-all duration-150 ease-out hover:scale-[1.02] active:scale-[0.98] ${
                 specialty === s
                   ? "border-brand-cta bg-neutral-50 text-brand-cta"
                   : "border-neutral-200 text-neutral-700 hover:border-brand-cta"
@@ -510,7 +566,7 @@ function ReferralForm() {
         </Button>
         <button
           type="button"
-          className="text-sm text-neutral-600 self-center"
+          className="text-sm text-neutral-600 self-center transition-transform duration-150 hover:-translate-x-0.5"
           onClick={() => setStep("details")}
         >
           Back

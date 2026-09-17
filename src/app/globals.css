@@ -101,3 +101,36 @@ h1, h2, h3, h4 {
   font-weight: 600;
   white-space: nowrap;
 }
+
+/* Plays once on mount (see the .animate-logo-morph className) -- the
+   homepage logo scales/unblurs into place as the page loads. */
+@keyframes logo-morph {
+  0% {
+    opacity: 0;
+    transform: scale(0.35) rotate(-12deg);
+    filter: blur(6px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.08) rotate(3deg);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+    filter: blur(0);
+  }
+}
+
+.animate-logo-morph {
+  animation: logo-morph 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
