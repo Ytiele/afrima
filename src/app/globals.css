@@ -86,8 +86,8 @@
   --color-brand-green-900: var(--color-brand-green-900);
   --color-brand-cta: var(--color-brand-cta);
   --color-brand-cta-hover: var(--color-brand-cta-hover);
-  --font-heading: var(--font-caprasimo), Georgia, serif;
-  --font-sans: var(--font-figtree), system-ui, -apple-system, sans-serif;
+  --font-heading: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
 body {
@@ -98,7 +98,8 @@ body {
 
 h1, h2, h3, h4 {
   font-family: var(--font-heading);
-  font-weight: 400;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1.1;
 }
 

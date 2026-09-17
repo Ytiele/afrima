@@ -7,39 +7,75 @@ import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { Button, Card, Field, inputClass } from "@/components/ui";
 import { MPESA_ACCOUNT, MPESA_PAYBILL, SPECIALTIES, SPECIALTY_LABELS, type Specialty } from "@/lib/types";
+import {
+  Ambulance,
+  Apple,
+  HeartHandshake,
+  Home as HomeIcon,
+  Microscope,
+  Ribbon,
+  ShieldCheck,
+  Smartphone,
+  Video,
+  type LucideIcon,
+} from "lucide-react";
 
 type Mode = "queue" | "referral";
 
-const SERVICES: { title: string; description: string }[] = [
+const SERVICES: { title: string; description: string; icon: LucideIcon }[] = [
   {
     title: "Clinical Nutrition",
     description:
       "Work one-on-one with licensed nutritionists on personalized meal plans, weight management, and nutrition therapy for chronic conditions — all through a secure video consultation.",
+    icon: Apple,
   },
   {
     title: "Psychological Support",
     description:
       "Connect with experienced mental health professionals for personalized therapy sessions, effective stress management strategies, and compassionate emotional support — all accessible online, from the comfort and privacy of your home.",
+    icon: HeartHandshake,
   },
   {
     title: "Chronic Disease Follow up & Home Based Care",
     description:
       "We are a reliable partner in taking care of patients discharged from hospitals to recuperate at home, especially for patients ailing from mobility-limiting ailments such as stroke, head & spinal injuries, dementia & Alzheimer's disease, cancers, and post-surgery home care, among others. Our team of qualified home-based care nurses, community health nurses, psychologists, nutritionists, and occupational & physiotherapists commit to a patient's follow-up from the time they are discharged from hospital — arranging transport home, ensuring proper set-up at home, and delivering dignified home-based clinical care, both physically and virtually, at affordable costs.",
+    icon: HomeIcon,
   },
   {
     title: "Ambulance Services",
     description:
       "We offer emergency evacuation services through our dedicated team of ambulance attendants and partners within Murang'a County at very pocket-friendly charges, including linkage with partner institutions offering ICU & HDU services at affordable charges.",
+    icon: Ambulance,
   },
   {
     title: "Cancer Care & Follow up",
     description:
       "We pride ourselves as reliable partners ensuring cancer patients get quick linkage with specialists for specialized treatments through our MOUs with reputable institutions across the country, so patients can quickly start prescribed chemotherapy, radiotherapy, and surgeries at well-equipped partner facilities.",
+    icon: Ribbon,
   },
   {
     title: "Imaging & Laboratory Services Facilitation",
     description:
       "Through our partners, we ensure patients undergo prescribed specialized diagnostic laboratory and imaging tests even when financially constrained — so treatment isn't delayed, improving outcomes for many patients seeking our services.",
+    icon: Microscope,
+  },
+];
+
+const TRUST_POINTS: { title: string; description: string; icon: LucideIcon }[] = [
+  {
+    title: "Secure video consultations",
+    description: "Every call runs over an encrypted, private connection between you and your practitioner.",
+    icon: Video,
+  },
+  {
+    title: "Licensed professionals",
+    description: "Every nutritionist, psychologist, and practitioner on Afrima Digi-Health is vetted and licensed.",
+    icon: ShieldCheck,
+  },
+  {
+    title: "No app to install",
+    description: "Join from any phone or computer browser — no downloads, no account to set up.",
+    icon: Smartphone,
   },
 ];
 
@@ -72,10 +108,22 @@ export function QuickStartHome() {
         </div>
       </nav>
 
-      <section
-        className="px-4 py-16 sm:py-20"
-        style={{ background: "linear-gradient(135deg, var(--color-brand-black), var(--color-brand-green-900))" }}
-      >
+      <section className="relative isolate px-4 py-16 sm:py-24 overflow-hidden">
+        <Image
+          src="/hero-consult.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center -z-20"
+        />
+        <div
+          className="absolute inset-0 -z-10"
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(2,2,2,0.92), rgba(13,40,24,0.88))",
+          }}
+        />
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center">
           <div>
             <h6 className="text-xs font-bold uppercase tracking-wide mb-3 text-[#5fbf7f]">
@@ -97,36 +145,80 @@ export function QuickStartHome() {
       </section>
 
       <section id="who-we-are" className="px-4 py-16 sm:py-20 bg-white">
-        <div className="max-w-4xl mx-auto text-center">
-          <h6 className="text-xs font-bold uppercase tracking-wide text-brand-cta mb-3">Who We Are</h6>
-          <h2 className="text-3xl sm:text-4xl mb-6">Afrimerchants Ltd</h2>
-          <p className="text-base text-neutral-700 text-left sm:text-center">
-            Afrima Digi-Health Ke is a trusted Kenyan digital health company that connects patients
-            with licensed nutritionists and psychologists through secure virtual consultations. As a
-            proud subsidiary of Afrimerchants Limited, we&apos;re on a mission to make affordable,
-            expert care accessible to everyone, everywhere in Kenya. With a growing network of 150+
-            partner health facilities and 400+ community health workers (CHWs) across the country, we
-            remove the barriers to professional support — providing safe, confidential, and
-            convenient healthcare you can rely on, right from your phone or computer.
-          </p>
-          <div className="flex flex-wrap justify-center gap-10 mt-10">
-            <div>
-              <div className="font-heading text-4xl text-brand-cta">150+</div>
-              <div className="text-xs uppercase tracking-wide text-neutral-500">
-                Partner health facilities
+        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center">
+          <div className="relative aspect-[4/3] rounded-2xl overflow-hidden order-2 md:order-1">
+            <Image
+              src="/video-call-woman.jpg"
+              alt="A practitioner speaking with a patient over video call"
+              fill
+              sizes="(min-width: 768px) 40vw, 100vw"
+              className="object-cover"
+            />
+          </div>
+          <div className="order-1 md:order-2">
+            <h6 className="text-xs font-bold uppercase tracking-wide text-brand-cta mb-3">Who We Are</h6>
+            <h2 className="text-3xl sm:text-4xl mb-6">Afrimerchants Ltd</h2>
+            <p className="text-base text-neutral-700">
+              Afrima Digi-Health Ke is a trusted Kenyan digital health company that connects patients
+              with licensed nutritionists and psychologists through secure virtual consultations. As a
+              proud subsidiary of Afrimerchants Limited, we&apos;re on a mission to make affordable,
+              expert care accessible to everyone, everywhere in Kenya. With a growing network of 150+
+              partner health facilities and 400+ community health workers (CHWs) across the country, we
+              remove the barriers to professional support — providing safe, confidential, and
+              convenient healthcare you can rely on, right from your phone or computer.
+            </p>
+            <div className="flex flex-wrap gap-10 mt-8">
+              <div>
+                <div className="font-heading text-4xl text-brand-cta">150+</div>
+                <div className="text-xs uppercase tracking-wide text-neutral-500">
+                  Partner health facilities
+                </div>
               </div>
-            </div>
-            <div>
-              <div className="font-heading text-4xl text-brand-cta">400+</div>
-              <div className="text-xs uppercase tracking-wide text-neutral-500">
-                Community health workers
+              <div>
+                <div className="font-heading text-4xl text-brand-cta">400+</div>
+                <div className="text-xs uppercase tracking-wide text-neutral-500">
+                  Community health workers
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="services" className="px-4 py-16 sm:py-20 bg-neutral-50">
+      <section className="px-4 py-16 sm:py-20 bg-neutral-50">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center">
+          <div>
+            <h6 className="text-xs font-bold uppercase tracking-wide text-brand-cta mb-3">
+              Virtual care, real connection
+            </h6>
+            <h2 className="text-3xl sm:text-4xl mb-6">Trusted telehealth, wherever you are</h2>
+            <div className="flex flex-col gap-6">
+              {TRUST_POINTS.map((t) => (
+                <div key={t.title} className="flex gap-4">
+                  <div className="shrink-0 h-11 w-11 rounded-full bg-brand-cta/10 flex items-center justify-center">
+                    <t.icon className="h-5 w-5 text-brand-cta" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold mb-1">{t.title}</h3>
+                    <p className="text-sm text-neutral-600">{t.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="relative aspect-[4/3] rounded-2xl overflow-hidden">
+            <Image
+              src="/video-call-man.jpg"
+              alt="A practitioner joining a secure video consultation from their desk"
+              fill
+              sizes="(min-width: 768px) 40vw, 100vw"
+              className="object-cover"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section id="services" className="px-4 py-16 sm:py-20 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
             <h6 className="text-xs font-bold uppercase tracking-wide text-brand-cta mb-3">
@@ -137,7 +229,9 @@ export function QuickStartHome() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {SERVICES.map((s) => (
               <Card key={s.title} className="p-6">
-                <div className="h-1.5 w-10 rounded-full mb-4 bg-brand-cta" />
+                <div className="h-11 w-11 rounded-full mb-4 bg-brand-cta/10 flex items-center justify-center">
+                  <s.icon className="h-5 w-5 text-brand-cta" />
+                </div>
                 <h3 className="text-lg mb-2">{s.title}</h3>
                 <p className="text-sm text-neutral-600">{s.description}</p>
               </Card>
